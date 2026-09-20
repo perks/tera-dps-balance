@@ -101,7 +101,7 @@ for c in CLS:
     row={}
     for t in TIERS:
         x=[s["rel"] for s in G if s["cls"]==c and tier(s)==t]
-        if len(x)>=3: row[t]=dict(n=len(x),med=st.median(x),avg=st.mean(x),p90=q(x,.9),p95=q(x,.95),p99=q(x,.99),max=max(x))
+        if len(x)>=3: row[t]=dict(n=len(x),med=st.median(x),avg=st.mean(x))
     row["ilvlSlope"]=None
     il=[(s["ilvl"],s["rel"]) for s in G if s["cls"]==c and s["ilvl"] and 395<=s["ilvl"]<=420]
     if len(il)>=30:
