@@ -193,11 +193,13 @@ except Exception: BASE=[]
 try: SICON=json.load(open("slayer_skill_icons.json",encoding="utf-8"))
 except Exception: SICON={}
 def skill_of(name,api):
+    # the API's skillName is authoritative; glyph display names are legacy and
+    # do not reliably match the skill they modify (e.g. "Energetic Triumphant
+    # Shout" is a Knockdown Strike glyph, "Boosted Overpower" a Whirlwind one).
+    if api: return api
     for b in BASE:
         if name==b or name.endswith(" "+b): return b
-    parts=(name or "").split()
-    if len(parts)>=2: return " ".join(parts[1:])
-    return api
+    return None
 for gid,v in cat.items():
     n=v.get("name")
     if not n: continue
@@ -206,7 +208,7 @@ for gid,v in cat.items():
         sk2=skill_of(n,v.get("skill"))
         meta[n]=dict(skill=sk2,points=v.get("points"),
             icon=("icons/"+v["icon"].split("/")[-1].lower()) if v.get("icon") else None,
-            skillIcon=("icons/"+SICON[sk2].split("/")[-1].lower()) if sk2 in SICON else (("icons/"+v["skillIcon"].split("/")[-1].lower()) if (v.get("skillIcon") and v.get("skill")==sk2) else None),
+            skillIcon=("icons/"+v["skillIcon"].split("/")[-1].lower()) if v.get("skillIcon") else (("icons/"+SICON[sk2].split("/")[-1].lower()) if sk2 in SICON else None),
             desc=re.sub(r"<[^>]+>","",v.get("desc") or "").replace("$BR"," ").strip(),
             skillOrder=v.get("skillOrder") or 0,glyphOrder=v.get("glyphOrder") or 0)
 for g in out["glyphs"]["list"]: g.update(meta.get(g["name"],{}))
