@@ -63,7 +63,6 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 .nav{display:flex;gap:14px;font-size:13px;font-weight:600;margin-bottom:14px}.nav a{color:var(--ink2);text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}.nav a[aria-current]{color:var(--ink);border-color:var(--bar)}
 </style>
 <div class="wrap">
-<div class="nav"><a href="index.html" aria-current="page">DPS classes</a><a href="tanks.html">Tanks</a></div>
 <div class="eyebrow">TERA Europe Classic+ · public leaderboard API · __D0__ – __D1__</div>
 <h1>Classic+ DPS Balance</h1>
 <p class="sub">Every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors are counted only when the meter flagged them as DPS, not tank. Healers, tanks, and entries under 50k DPS (died early / broken upload) are excluded.</p>

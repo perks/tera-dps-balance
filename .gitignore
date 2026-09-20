@@ -3,3 +3,7 @@ enc2/
 *.json
 report.html
 tankreport.html
+tanks.html
+tank.py
+tankreport.py
+fetchtank.py
