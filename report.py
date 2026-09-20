@@ -103,7 +103,9 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
  <div class="panel"><h3>How much gear moves the needle</h3><div class="tscroll" id="gearEffect"></div><p class="note">Median relative DPS (vs boss median) by weapon enchant tier, all classes pooled. The +6 → +7 step is the one to keep in mind when reading raw tables.</p></div>
  <div class="panel"><h3>Who is geared</h3><div class="tscroll" id="gearProfile"></div><p class="note">If a class sits high on the raw table but also has more +7/+8 weapons, the raw number overstates it.</p></div>
 </div>
-<div class="panel" style="margin-top:16px"><h3>Same gear, same boss: <span id="stdDesc"></span></h3><div id="stdChart"></div><p class="note" id="stdNote"></p></div>
+<div class="panel" style="margin-top:16px"><h3>Same gear, same boss: <span id="stdDesc"></span></h3>
+<div class="tabs" role="tablist" id="stdTabs"></div>
+<div id="stdChart"></div><p class="note" id="stdNote"></p></div>
 </section>
 
 <section>
@@ -171,8 +173,13 @@ document.getElementById('gearEffect').innerHTML=`<table><thead><tr><th>weapon</t
  `</tbody></table><table style="margin-top:10px"><thead><tr><th>brooch (+6 weapon only)</th><th>n</th><th>median index</th></tr></thead><tbody>`+Object.entries(D.gear.broochEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+`</tbody></table>`;
 document.getElementById('gearProfile').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>avg ilvl</th><th>avg wpn</th><th>+7 or better</th><th>chrono</th></tr></thead><tbody>`+Object.entries(D.gear.classGearProfile).sort((a,b)=>b[1].pct7plus-a[1].pct7plus).map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td>${r.avgIlvl?r.avgIlvl.toFixed(1):'–'}</td><td>+${r.avgWEnch.toFixed(2)}</td><td>${Math.round(r.pct7plus*100)}%</td><td>${Math.round(r.pctChrono*100)}%</td></tr>`).join('')+`</tbody></table>`;
 document.getElementById('stdDesc').textContent=D.gear.stdBucket.desc;
-barChart(document.getElementById('stdChart'),Object.entries(D.gear.stdBucket.classes),'avg','n / players');
-document.getElementById('stdNote').textContent=`${D.gear.stdBucket.n} samples. Per-dungeon same-gear index: `+AREAS.map(a=>{const r=D.gear.stdBucket.byArea[a];const top=Object.entries(r).sort((x,y)=>y[1].avg-x[1].avg);return top.length?`${a}: ${top.slice(0,3).map(([c,v])=>c+' '+f2(v.avg)).join(', ')} … ${top.slice(-2).map(([c,v])=>c+' '+f2(v.avg)).join(', ')}`:''}).filter(Boolean).join(' · ')+'.';
+const stdTabs=document.getElementById('stdTabs');
+const stdSets=[['All dungeons',D.gear.stdBucket.classes,D.gear.stdBucket.n],...AREAS.map(a=>[a,D.gear.stdBucket.byArea[a],Object.values(D.gear.stdBucket.byArea[a]).reduce((s,r)=>s+r.n,0)])];
+stdSets.forEach(([label,rows,n],i)=>{const b=document.createElement('button');b.role='tab';b.textContent=label;b.setAttribute('aria-selected',i===0);
+ b.onclick=()=>{[...stdTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('stdChart'),Object.entries(rows).map(r=>[r[0],{...r[1]}]),'avg','n / players');
+ document.getElementById('stdNote').textContent=`${n} samples wearing ${D.gear.stdBucket.desc}${label==='All dungeons'?', all five dungeons pooled':' in '+label}. Index is vs the boss median of all players, so a well-geared group sits above 1.00 on average — read the ordering and the gaps, not the absolute level.`};
+ stdTabs.appendChild(b)});
+stdTabs.children[0].click();
 </script>
 """
 html=html.replace("__DATA__",DATA).replace("__D0__",d0).replace("__D1__",d1)
