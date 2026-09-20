@@ -96,6 +96,19 @@ for c in CLS:
     x=[s for s in G if s["cls"]==c]
     il=[s["ilvl"] for s in x if s["ilvl"]]
     out["gear"]["classGearProfile"][c]=dict(n=len(x),avgIlvl=st.mean(il) if il else None,avgWEnch=st.mean([s["wEnch"] for s in x]),pctChrono=sum(s["brooch"]=="Chrono Brooch" for s in x)/len(x),pct7plus=sum(s["wEnch"]>=7 for s in x)/len(x))
+out["gear"]["classByTier"]={}
+for c in CLS:
+    row={}
+    for t in TIERS:
+        x=[s["rel"] for s in G if s["cls"]==c and tier(s)==t]
+        if len(x)>=3: row[t]=dict(n=len(x),med=st.median(x),avg=st.mean(x))
+    row["ilvlSlope"]=None
+    il=[(s["ilvl"],s["rel"]) for s in G if s["cls"]==c and s["ilvl"] and 395<=s["ilvl"]<=420]
+    if len(il)>=30:
+        mx=st.mean(i for i,_ in il); my=st.mean(r for _,r in il)
+        sxx=sum((i-mx)**2 for i,_ in il); sxy=sum((i-mx)*(r-my) for i,r in il)
+        row["ilvlSlope"]=dict(n=len(il),perIlvl=sxy/sxx)
+    out["gear"]["classByTier"][c]=row
 out["representation"]={c:dict(samples=sum(1 for s in F if s["cls"]==c),players=len({s["pid"] for s in F if s["cls"]==c and not s["anon"]}),medDur=out["durByClass"][c]["medDur"],avgCrit=st.mean([s["crit"] for s in F if s["cls"]==c and s["crit"] is not None])) for c in CLS}
 json.dump(out,open("final.json","w",encoding="utf-8"),indent=1,ensure_ascii=False)
 json.dump(S,open("samples_final.json","w"))

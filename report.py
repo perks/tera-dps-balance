@@ -103,6 +103,7 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
  <div class="panel"><h3>How much gear moves the needle</h3><div class="tscroll" id="gearEffect"></div><p class="note">Median relative DPS (vs boss median) by weapon enchant tier, all classes pooled. The +6 → +7 step is the one to keep in mind when reading raw tables.</p></div>
  <div class="panel"><h3>Who is geared</h3><div class="tscroll" id="gearProfile"></div><p class="note">If a class sits high on the raw table but also has more +7/+8 weapons, the raw number overstates it.</p></div>
 </div>
+<div class="panel" style="margin-top:16px"><h3>How much each class gains from gear</h3><div class="tscroll" id="classTier"></div><p class="note">Median index per weapon tier, with sample count. <b>% per ilvl</b> is a regression slope over every sample of that class (item level 395–420) — the most robust column, since +7/+8 buckets are thin. Higher = the class scales harder with gear, so it is more undergeared-punished and more BiS-rewarded. Blank = fewer than 3 samples.</p></div>
 <div class="panel" style="margin-top:16px"><h3>Same gear, same boss: <span id="stdDesc"></span></h3>
 <div class="tabs" role="tablist" id="stdTabs"></div>
 <div id="stdChart"></div><p class="note" id="stdNote"></p></div>
@@ -172,6 +173,11 @@ document.getElementById('gearCov').textContent=`${D.gear.coverage.withGear.toLoc
 document.getElementById('gearEffect').innerHTML=`<table><thead><tr><th>weapon</th><th>n</th><th>median index</th></tr></thead><tbody>`+Object.entries(D.gear.tierEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+
  `</tbody></table><table style="margin-top:10px"><thead><tr><th>brooch (+6 weapon only)</th><th>n</th><th>median index</th></tr></thead><tbody>`+Object.entries(D.gear.broochEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+`</tbody></table>`;
 document.getElementById('gearProfile').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>avg ilvl</th><th>avg wpn</th><th>+7 or better</th><th>chrono</th></tr></thead><tbody>`+Object.entries(D.gear.classGearProfile).sort((a,b)=>b[1].pct7plus-a[1].pct7plus).map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td>${r.avgIlvl?r.avgIlvl.toFixed(1):'–'}</td><td>+${r.avgWEnch.toFixed(2)}</td><td>${Math.round(r.pct7plus*100)}%</td><td>${Math.round(r.pctChrono*100)}%</td></tr>`).join('')+`</tbody></table>`;
+const TIERS=Object.keys(D.gear.tierEffect);
+document.getElementById('classTier').innerHTML=`<table><thead><tr><th>class</th>${TIERS.map(t=>`<th>${t.replace(' weapon','')}</th>`).join('')}<th>+6 → +7</th><th>+6 → +8/9</th><th>% per ilvl</th></tr></thead><tbody>`+
+ Object.entries(D.gear.classByTier).sort((a,b)=>(b[1].ilvlSlope?b[1].ilvlSlope.perIlvl:0)-(a[1].ilvlSlope?a[1].ilvlSlope.perIlvl:0)).map(([c,r])=>{
+  const g=(a,b)=>r[a]&&r[b]?`<b>+${Math.round((r[b].med/r[a].med-1)*100)}%</b>`:'<span class="n">–</span>';
+  return `<tr><td><b>${c}</b></td>${TIERS.map(t=>r[t]?`<td>${pill(r[t].med)} <span class="n">${r[t].n}</span></td>`:'<td></td>').join('')}<td>${g('+6 weapon','+7 weapon')}</td><td>${g('+6 weapon','+8/+9 weapon')}</td><td><b>${r.ilvlSlope?(r.ilvlSlope.perIlvl*100).toFixed(1)+'%':'–'}</b> <span class="n">${r.ilvlSlope?r.ilvlSlope.n:''}</span></td></tr>`}).join('')+`</tbody></table>`;
 document.getElementById('stdDesc').textContent=D.gear.stdBucket.desc;
 const stdTabs=document.getElementById('stdTabs');
 const stdSets=[['All dungeons',D.gear.stdBucket.classes,D.gear.stdBucket.n],...AREAS.map(a=>[a,D.gear.stdBucket.byArea[a],Object.values(D.gear.stdBucket.byArea[a]).reduce((s,r)=>s+r.n,0)])];
