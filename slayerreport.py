@@ -2,7 +2,7 @@ import json,re
 D=json.load(open("slayer2.json",encoding="utf-8"))
 DATA=json.dumps(D,ensure_ascii=False).replace('"icons/','"../icons/')
 css=re.search(r"<style>(.*?)</style>",open("report.py",encoding="utf-8").read(),re.S).group(1)
-html = r"""<title>Slayer Guide</title>
+html = r"""<title>Slayer Build Data</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>__CSS__
 .nav{display:flex;gap:14px;font-size:13px;font-weight:600;margin-bottom:14px}.nav a{color:var(--ink2);text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}.nav a[aria-current]{color:var(--ink);border-color:var(--bar)}
@@ -43,7 +43,7 @@ tr.me td{background:var(--heat0)}
 <div class="wrap">
 <div class="nav"><a href="../">Home</a><a href="../tera-dps-balance/">DPS classes</a><a href="../slayer-build/" aria-current="page">Slayer build data</a><a href="../slayer-guide/">Slayer guide</a></div>
 <div class="eyebrow">TERA Europe Classic+ · <span id="ds"></span></div>
-<h1>Slayer Guide</h1>
+<h1>Slayer Build Data</h1>
 <p class="lede">What the top Slayers run. For each endgame boss, the top 25 players by best recorded parse form the shortlist; every figure below is a share of that shortlist. Median item level <span id="ilvlm2"></span>.</p>
 <div class="tiles" id="tiles"></div>
 
