@@ -83,7 +83,7 @@ tr.me td{background:var(--heat0)}
 <section>
 <h2>Glyphs</h2>
 <p class="lead">Grouped by the skill each glyph modifies, ordered by that skill's share of Slayer damage. Percentage is the share of shortlisted players running the glyph; <span id="glcov2"></span> of shortlist parses have a recorded glyph page.</p>
-<p class="note" style="margin:-6px 0 12px">Some glyph display names are legacy and do not match the skill they affect — Energetic Triumphant Shout is a Knockdown Strike glyph, Boosted Overpower a Whirlwind one. Grouping follows the skill link in the game data, not the name.</p>
+<p class="note" style="margin:-6px 0 12px">Seven glyph display names are legacy and name a different skill than the one they modify — Boosted Overpower is a Whirlwind glyph, Energetic Triumphant Shout and Keen Overpower are Knockdown Strike glyphs, Powerlinked Overhand Strike is an Eviscerate glyph, Swift Combo Attack a Distant Blade one. Grouping follows each glyph's skill link in the game data, checked against the game's own skill icon map (40 of 40 glyphs verified, no mismatches).</p>
 <div class="skillgroups" id="glyphs"></div>
 <details><summary>Full glyph table, top third of the shortlist vs the rest</summary><div class="inner tscroll" id="gfull"></div></details>
 </section>
