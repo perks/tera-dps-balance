@@ -74,7 +74,7 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 
 <section>
 <h2>Raw DPS by dungeon</h2>
-<p class="lead">Median / 90th percentile / best recorded DPS per class, 5-man kills only. <span class="n">n = samples · pl = distinct named players</span></p>
+<p class="lead">Median / 90th percentile / best recorded DPS per class, 5-man kills only. <span class="n">n = samples · uniq = distinct named players</span></p>
 <div class="panel">
 <div class="tabs" role="tablist" id="areaTabs"></div>
 <div class="tscroll" id="areaTable"></div>
@@ -137,10 +137,10 @@ function barChart(el,rows,key,nkey,note){
       return `<div class="lab">${c}</div><div class="track"><div class="zero" style="left:${z}%"></div><div class="fill ${v>=1.03?'pos':v<=0.97?'neg':''}" style="left:${left}%;width:${w}%"></div></div><div class="v">${f2(v)}</div><div class="nn">${r.n} <span style="opacity:.7">/ ${r.players||''}</span></div>`}).join('')+`</div>`;
 }
 const lenses=[
- {id:'raw',label:'Raw (all kills)',rows:Object.entries(D.relIndex),key:'avg',nkey:'n / players',note:`Average of per-kill index. Player-best median (each player counted once): ${Object.entries(D.relIndex).sort((a,b)=>b[1].playerBestMed-a[1].playerBestMed).map(([c,r])=>c+' '+f2(r.playerBestMed)).join(' · ')}.`},
- {id:'kt',label:'Kill-time matched',rows:Object.entries(D.killTimeIndex).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:D.relIndex[c].players}]),key:'avg',nkey:'n / players',note:'Class average ÷ median of the same duration quartile on the same boss, weighted by sample count across all 15 bosses.'},
- {id:'gear',label:'Same gear',rows:Object.entries(D.gear.stdBucket.classes),key:'avg',nkey:'n / players',note:`Only players wearing ${D.gear.stdBucket.desc} (${D.gear.stdBucket.n} samples).`},
- {id:'top',label:'Top 10% of players',rows:Object.entries(D.relIndex).map(([c,r])=>[c,{avg:r.top10,n:r.n,players:r.players}]),key:'avg',nkey:'n / players',note:'Average index of the best 10% of samples per class — the ceiling, not the typical player.'}
+ {id:'raw',label:'Raw (all kills)',rows:Object.entries(D.relIndex),key:'avg',nkey:'n / uniq',note:`Average of per-kill index. Player-best median (each player counted once): ${Object.entries(D.relIndex).sort((a,b)=>b[1].playerBestMed-a[1].playerBestMed).map(([c,r])=>c+' '+f2(r.playerBestMed)).join(' · ')}.`},
+ {id:'kt',label:'Kill-time matched',rows:Object.entries(D.killTimeIndex).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:D.relIndex[c].players}]),key:'avg',nkey:'n / uniq',note:'Class average ÷ median of the same duration quartile on the same boss, weighted by sample count across all 15 bosses.'},
+ {id:'gear',label:'Same gear',rows:Object.entries(D.gear.stdBucket.classes),key:'avg',nkey:'n / uniq',note:`Only players wearing ${D.gear.stdBucket.desc} (${D.gear.stdBucket.n} samples).`},
+ {id:'top',label:'Top 10% of players',rows:Object.entries(D.relIndex).map(([c,r])=>[c,{avg:r.top10,n:r.n,players:r.players}]),key:'avg',nkey:'n / uniq',note:'Average index of the best 10% of samples per class — the ceiling, not the typical player.'}
 ];
 const tabs=document.getElementById('lensTabs');
 lenses.forEach((L,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=L.label;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...tabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('lensChart'),L.rows.map(r=>[r[0],{...r[1]}]),L.key,L.nkey);document.getElementById('lensNote').textContent=L.note};tabs.appendChild(b)});
@@ -148,7 +148,7 @@ tabs.children[0].click();
 // area tables
 const at=document.getElementById('areaTabs');
 function areaTable(a){const rows=Object.entries(D.byArea[a]).sort((x,y)=>y[1].med-x[1].med);
- document.getElementById('areaTable').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>pl</th><th>min</th><th>p25</th><th>median</th><th>avg</th><th>p75</th><th>p90</th><th>max</th><th>index</th></tr></thead><tbody>`+
+ document.getElementById('areaTable').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>uniq</th><th>min</th><th>p25</th><th>median</th><th>avg</th><th>p75</th><th>p90</th><th>max</th><th>index</th></tr></thead><tbody>`+
  rows.map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td class="n">${r.players}</td><td class="n">${fk(r.min)}</td><td class="n">${fk(r.p25)}</td><td><b>${fk(r.med)}</b></td><td>${fk(r.avg)}</td><td class="n">${fk(r.p75)}</td><td>${fk(r.p90)}</td><td>${fk(r.max)}</td><td>${pill(D.relIndexByArea[a][c]&&D.relIndexByArea[a][c].avg)}</td></tr>`).join('')+`</tbody></table>`}
 AREAS.forEach((a,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=a;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...at.children].forEach(x=>x.setAttribute('aria-selected',x===b));areaTable(a)};at.appendChild(b)});
 at.children[0].click();
@@ -171,7 +171,7 @@ document.getElementById('stdDesc').textContent=D.gear.stdBucket.desc;
 const stdTabs=document.getElementById('stdTabs');
 const stdSets=[['All dungeons',D.gear.stdBucket.classes,D.gear.stdBucket.n],...AREAS.map(a=>[a,D.gear.stdBucket.byArea[a],Object.values(D.gear.stdBucket.byArea[a]).reduce((s,r)=>s+r.n,0)])];
 stdSets.forEach(([label,rows,n],i)=>{const b=document.createElement('button');b.role='tab';b.textContent=label;b.setAttribute('aria-selected',i===0);
- b.onclick=()=>{[...stdTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('stdChart'),Object.entries(rows).map(r=>[r[0],{...r[1]}]),'avg','n / players');
+ b.onclick=()=>{[...stdTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('stdChart'),Object.entries(rows).map(r=>[r[0],{...r[1]}]),'avg','n / uniq');
  document.getElementById('stdNote').textContent=`${n} samples wearing ${D.gear.stdBucket.desc}${label==='All dungeons'?', all five dungeons pooled':' in '+label}. Index is vs the boss median of all players, so a well-geared group sits above 1.00 on average — read the ordering and the gaps, not the absolute level.`};
  stdTabs.appendChild(b)});
 stdTabs.children[0].click();
