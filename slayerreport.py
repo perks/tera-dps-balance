@@ -94,14 +94,6 @@ tr.me td{background:var(--heat0)}
 </section>
 
 <section>
-<h2>Top third of the shortlist vs the rest</h2>
-<p class="lead">The 25 shortlisted players on Calamity Helghan, split into thirds by their rank on that board.</p>
-<div class="panel"><div class="tscroll" id="split"></div>
-<p class="note" id="splitNote"></p></div>
-<details><summary>Gear of the top third vs the rest, all boards</summary><div class="inner"><div class="tscroll" id="gearSplit"></div></div></details>
-</section>
-
-<section>
 <h2>The shortlists</h2>
 <div class="panel">
 <div class="tabs" role="tablist" id="boardTabs"></div>
@@ -182,13 +174,6 @@ const mx=rot[0].share;
 document.getElementById('dmg').innerHTML=rot.map(r=>`<div>${icons[r.name]?`<img src="${icons[r.name]}" alt="">`:''}</div><div>${r.name}</div><div class="bar"><i style="width:${100*r.share/mx}%"></i></div><div class="v">${f1(r.share)}%</div>`).join('');
 document.getElementById('rot').innerHTML=`<table><thead><tr><th>skill</th><th>damage share</th><th>casts / min</th><th>crit rate</th></tr></thead><tbody>`+
  D.rotation.filter(r=>r.name!=='(unnamed)').map(r=>`<tr><td><b>${r.name}</b></td><td><b>${f1(r.share)}%</b></td><td>${f1(r.cpm)}</td><td class="n">${f1(r.crit)}%</td></tr>`).join('')+`</tbody></table>`;
-// split
-document.getElementById('split').innerHTML=`<table><thead><tr><th></th><th>players</th><th>DPS</th><th>casts / min</th><th>kill time</th><th>crit rate</th><th>item level</th><th>Titan pieces</th></tr></thead><tbody>`+
- [['Top third',sp.top],['Middle third',sp.mid],['Bottom third',sp.bottom]].map(([l,v])=>`<tr><td><b>${l}</b></td><td class="n">${v.n}</td><td><b>${fk(v.dps)}</b></td><td>${f1(v.cpm)}</td><td>${Math.round(v.dur)}s</td><td class="n">${f1(v.crit)}%</td><td class="n">${v.ilvl?v.ilvl.toFixed(1):'-'}</td><td class="n">${f1(v.titan)}</td></tr>`).join('')+`</tbody></table>`;
-document.getElementById('splitNote').textContent=`Top third: ${Math.round(100*(sp.top.dps/sp.bottom.dps-1))}% more DPS than the bottom third, ${Math.round(100*(sp.top.cpm/sp.bottom.cpm-1))}% more casts per minute, ${Math.round(sp.bottom.dur-sp.top.dur)}s shorter kills, same item level.`;
-const gs=D.gearSplit;
-document.getElementById('gearSplit').innerHTML=`<table><thead><tr><th></th><th>parses</th><th>item level</th><th>Titan pieces</th><th>Chrono brooch</th><th>standard crystals</th><th>enraged line</th><th>weapon +7 or better</th><th>offensive rolls</th></tr></thead><tbody>`+
- Object.entries(gs).map(([k,v])=>`<tr><td><b>${k}</b></td><td class="n">${v.n}</td><td>${v.ilvl?v.ilvl.toFixed(1):'-'}</td><td>${f1(v.titanAvg)}</td><td>${pc(v.chrono)}</td><td>${pc(v.stdCrystal)}</td><td>${pc(v.enraged)}</td><td>${pc(v.w7)}</td><td>${f1(v.offRolls)}</td></tr>`).join('')+`</tbody></table>`;
 // boards
 const bt=document.getElementById('boardTabs');
 function board(i){const b=D.boards[i];
