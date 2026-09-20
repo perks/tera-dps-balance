@@ -110,6 +110,16 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 </section>
 
 <section>
+<h2>Peak performance</h2>
+<p class="lead">The single best run recorded in each dungeon, and the best run per class, measured against the median DPS of that boss. Names are as shown on the public leaderboard; players who opted out appear as Anonymous.</p>
+<div class="panel">
+<div class="tabs" role="tablist" id="peakTabs"></div>
+<div id="peakHero" class="tiles" style="margin-top:4px"></div>
+<div class="tscroll" id="peakTable"></div>
+</div>
+</section>
+
+<section>
 <h2>Reading guide</h2>
 <div class="panel">
 <ul class="tight">
@@ -178,6 +188,13 @@ document.getElementById('classTier').innerHTML=`<table><thead><tr><th>class</th>
  Object.entries(D.gear.classByTier).sort((a,b)=>(b[1].ilvlSlope?b[1].ilvlSlope.perIlvl:0)-(a[1].ilvlSlope?a[1].ilvlSlope.perIlvl:0)).map(([c,r])=>{
   const g=(a,b)=>r[a]&&r[b]?`<b>+${Math.round((r[b].med/r[a].med-1)*100)}%</b>`:'<span class="n">–</span>';
   return `<tr><td><b>${c}</b></td>${TIERS.map(t=>r[t]?`<td>${pill(r[t].med)} <span class="n">${r[t].n}</span></td>`:'<td></td>').join('')}<td>${g('+6 weapon','+7 weapon')}</td><td>${g('+6 weapon','+8/+9 weapon')}</td><td><b>${r.ilvlSlope?(r.ilvlSlope.perIlvl*100).toFixed(1)+'%':'–'}</b> <span class="n">${r.ilvlSlope?r.ilvlSlope.n:''}</span></td></tr>`}).join('')+`</tbody></table>`;
+const peakTabs=document.getElementById('peakTabs');
+function peak(a){const P=D.peak[a],o=P.overall;
+ document.getElementById('peakHero').innerHTML=`<div class="tile"><b>${o.rel.toFixed(2)}×</b><span>boss median</span></div><div class="tile"><b>${fk(o.dps)}</b><span>${o.cls} · ${o.name}</span></div><div class="tile"><b>${fk(o.bossMed)}</b><span>median on ${o.boss}</span></div><div class="tile"><b>${o.dur}s</b><span>fight length</span></div>`;
+ document.getElementById('peakTable').innerHTML=`<table><thead><tr><th>class</th><th>player</th><th>boss</th><th>dps</th><th>boss median</th><th>× median</th><th>fight</th></tr></thead><tbody>`+
+  Object.entries(P.byClass).sort((x,y)=>y[1].rel-x[1].rel).map(([c,r])=>`<tr><td><b>${c}</b></td><td style="text-align:left">${r.name}</td><td style="text-align:left" class="n">${r.boss}</td><td><b>${fk(r.dps)}</b></td><td class="n">${fk(r.bossMed)}</td><td>${pill(r.rel)}</td><td class="n">${r.dur}s</td></tr>`).join('')+`</tbody></table>`}
+AREAS.forEach((a,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=a;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...peakTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));peak(a)};peakTabs.appendChild(b)});
+peakTabs.children[0].click();
 document.getElementById('stdDesc').textContent=D.gear.stdBucket.desc;
 const stdTabs=document.getElementById('stdTabs');
 const stdSets=[['All dungeons',D.gear.stdBucket.classes,D.gear.stdBucket.n],...AREAS.map(a=>[a,D.gear.stdBucket.byArea[a],Object.values(D.gear.stdBucket.byArea[a]).reduce((s,r)=>s+r.n,0)])];
