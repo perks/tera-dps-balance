@@ -1,0 +1,313 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width"></head><body style="margin:0"><title>Slayer Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light;
+ --bg:#f5f3ee;--panel:#ffffff;--ink:#1b1a17;--ink2:#5b584f;--muted:#8a867a;--line:#e2ded4;--line2:#cfcabc;
+ --bar:#2a6fb8;--bar-soft:#c9dcf1;--pos:#1a8a5a;--neg:#c9452b;--pos-bg:#d8f0e4;--neg-bg:#f8d9d1;--mid-bg:#ecebe5;--accent:#b8541f;--heat0:#f4f2ec;--heat1:#2a6fb8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --bg:#17181a;--panel:#1f2124;--ink:#f1efe8;--ink2:#b8b4a8;--muted:#807c72;--line:#33363b;--line2:#464a51;
+ --bar:#4f95e0;--bar-soft:#2a4363;--pos:#3fc48a;--neg:#f0745a;--pos-bg:#1e3a2d;--neg-bg:#452620;--mid-bg:#2a2c30;--accent:#e08a5a;--heat0:#25272b;--heat1:#4f95e0}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --bg:#17181a;--panel:#1f2124;--ink:#f1efe8;--ink2:#b8b4a8;--muted:#807c72;--line:#33363b;--line2:#464a51;
+ --bar:#4f95e0;--bar-soft:#2a4363;--pos:#3fc48a;--neg:#f0745a;--pos-bg:#1e3a2d;--neg-bg:#452620;--mid-bg:#2a2c30;--accent:#e08a5a;--heat0:#25272b;--heat1:#4f95e0}
+body{background:var(--bg);color:var(--ink);font-family:Barlow,system-ui,sans-serif;font-size:15px;line-height:1.45;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-block:28px 64px;padding-inline:20px}
+h1{font-family:"Barlow Condensed",Barlow,sans-serif;font-weight:700;font-size:40px;line-height:1;margin:0 0 6px;letter-spacing:.01em;text-wrap:balance}
+h2{font-family:"Barlow Condensed",Barlow,sans-serif;font-weight:700;font-size:24px;margin:0 0 4px;letter-spacing:.01em}
+h3{font-size:15px;font-weight:600;margin:0 0 6px;color:var(--ink)}
+.sub{color:var(--ink2);margin:0 0 18px;max-width:70ch}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
+section{margin-top:40px}
+.lead{color:var(--ink2);max-width:72ch;margin:0 0 14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0 6px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.tile b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:28px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1px solid var(--line2);font-weight:600;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.tscroll{overflow-x:auto}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12.5px}
+.n{color:var(--muted);font-size:12px}
+.pill{display:inline-block;padding:1px 7px;border-radius:4px;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+.pos{background:var(--pos-bg);color:var(--pos)}.neg{background:var(--neg-bg);color:var(--neg)}.mid{background:var(--mid-bg);color:var(--ink2)}
+.bars{display:grid;grid-template-columns:90px 1fr 60px 70px;gap:6px 10px;align-items:center;font-size:14px}
+.bars .lab{font-weight:600}
+.bars .track{position:relative;height:16px;background:var(--heat0);border-radius:3px}
+.bars .fill{position:absolute;top:2px;bottom:2px;border-radius:2px;background:var(--bar)}
+.bars .fill.neg{background:var(--neg)}
+.bars .fill.pos{background:var(--pos)}
+.bars .zero{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--line2)}
+.bars .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.bars .nn{text-align:right;color:var(--muted);font-size:12px}
+.hdr{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+select{font:inherit;padding:4px 8px;border:1px solid var(--line2);border-radius:4px;background:var(--panel);color:var(--ink)}
+.heat td.h{color:var(--ink);font-weight:500}
+.note{font-size:13px;color:var(--ink2);margin-top:8px;max-width:78ch}
+ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
+.legend{font-size:12px;color:var(--muted);margin-top:8px}
+.tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:13px;font-weight:600;padding:5px 10px;border:1px solid var(--line2);background:var(--panel);color:var(--ink2);border-radius:4px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--bar);border-color:var(--bar);color:#fff}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nav{display:flex;gap:14px;font-size:13px;font-weight:600;margin-bottom:14px;flex-wrap:wrap}.nav a{color:var(--ink2);text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}.nav a[aria-current]{color:var(--ink);border-color:var(--bar)}
+.nav{display:flex;gap:14px;font-size:13px;font-weight:600;margin-bottom:14px}.nav a{color:var(--ink2);text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}.nav a[aria-current]{color:var(--ink);border-color:var(--bar)}
+
+.nav{display:flex;gap:14px;font-size:13px;font-weight:600;margin-bottom:14px;flex-wrap:wrap}.nav a{color:var(--ink2);text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}.nav a[aria-current]{color:var(--ink);border-color:var(--bar)}
+.lede{font-size:16.5px;line-height:1.55;max-width:72ch;margin:0 0 16px}
+p{max-width:72ch;line-height:1.55}
+h3{margin-top:18px}
+.sk{display:inline-flex;align-items:center;gap:5px;background:var(--heat0);border:1px solid var(--line);border-radius:4px;padding:1px 7px 1px 3px;font-weight:600;font-size:13.5px;white-space:nowrap;vertical-align:1px}
+.sk img{width:20px;height:20px;border-radius:3px}
+.chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.chain .arw{color:var(--muted);font-weight:700}
+.tierhead{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;margin:14px 0 6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.dot.red{background:var(--neg)}.dot.yel{background:var(--accent)}.dot.blu{background:var(--bar)}
+.gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px}
+.gcard{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-left:3px solid var(--line2);border-radius:5px;padding:8px 10px;background:var(--panel)}
+.gcard.red{border-left-color:var(--neg)}.gcard.yel{border-left-color:var(--accent)}.gcard.blu{border-left-color:var(--bar)}
+.gcard img{width:26px;height:26px;border-radius:4px;background:var(--heat0);flex:none}
+.gcard .nm{font-size:14px;font-weight:600;line-height:1.25}
+.gcard .mt{font-size:11.5px;color:var(--muted);margin-top:2px}
+.callout{border-left:3px solid var(--accent);background:var(--panel);border-radius:0 5px 5px 0;padding:10px 14px;margin:12px 0;font-size:14.5px}
+.callout b{color:var(--accent)}
+.linkcard{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line2);border-radius:6px;padding:12px 14px;background:var(--panel);margin:12px 0}
+.linkcard a{color:var(--bar);font-weight:600;text-decoration:none;white-space:nowrap}
+.bigcard{display:flex;justify-content:space-between;align-items:center;gap:16px;border:2px solid var(--bar);border-radius:8px;padding:16px 18px;background:var(--panel);margin:14px 0 20px;text-decoration:none;color:inherit}
+.bigcard:hover{background:var(--heat0)}
+.bigcard .bt{font-size:17px;font-weight:700;font-family:"Barlow Condensed",sans-serif;letter-spacing:.01em}
+.bigcard .bs{font-size:13.5px;color:var(--ink2);margin-top:3px;max-width:60ch}
+.bigcard .ba{background:var(--bar);color:#fff;font-weight:700;font-size:14px;padding:8px 14px;border-radius:5px;white-space:nowrap}
+@media (max-width:620px){.bigcard{flex-direction:column;align-items:flex-start}}
+.linkcard .t{font-size:14.5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0;max-width:72ch}
+ol.steps li{counter-increment:s;position:relative;padding:7px 0 7px 34px;border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.5}
+ol.steps li:last-child{border-bottom:0}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:7px;width:22px;height:22px;border-radius:50%;background:var(--heat0);color:var(--ink2);font-size:12px;font-weight:700;display:grid;place-items:center}
+.miss{border:1px dashed var(--line2);border-radius:5px;padding:10px 14px;color:var(--ink2);font-size:14px;background:var(--heat0)}
+.seq{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:flex-start;margin:10px 0}
+.seq .arw{color:var(--muted);font-weight:700;align-self:center;padding:0 2px}
+.seq .st{display:flex;flex-direction:column;gap:2px;max-width:170px}
+.seq .stn{font-size:11px;color:var(--muted);line-height:1.25;padding-left:2px}
+.seqbox{border:1px solid var(--line);border-left:3px solid var(--line2);border-radius:0 6px 6px 0;padding:10px 14px;margin:10px 0;background:var(--panel)}
+.seqbox.bad{border-left-color:var(--neg)}.seqbox.good{border-left-color:var(--pos)}
+.seqlab{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seqbox.bad .seqlab{color:var(--neg)}.seqbox.good .seqlab{color:var(--pos)}
+.seqnote{font-size:13.5px;color:var(--ink2)}
+</style>
+<div class="wrap">
+<div class="nav"><a href="../">Home</a><a href="../tera-dps-balance/">DPS classes</a><a href="../slayer-build/">Slayer build data</a><a href="../slayer-guide/" aria-current="page">Slayer guide</a></div>
+<div class="eyebrow">TERA Europe Classic+ · PvE · Patch 0.04</div>
+<h1>Playing Slayer</h1>
+<p class="lede">It is true that you mostly chain <span class="sk" data-sk="Overhand Strike"></span>, but there are a handful of things that position you to get more out of the class. This is a PvE guide — nothing here applies to PvP.</p>
+<div class="callout"><b>Disclaimer.</b> I am not the best Slayer and do not claim to be. Some of this is stylistic and true min-maxing depends on comp, encounter and kill time. Once you are comfortable, compare your own logs against top leaderboard performers at similar kill times. This is a baseline to grow your own Slayer style from.</div>
+
+<section>
+<h2>Gearing</h2>
+<p>There is no one-size-fits-all here, because your roll lines are RNG. Below are the objectively good lines to aim for and rough breakpoints.</p>
+<a class="bigcard" href="../slayer-build/"><div><div class="bt">See what the top 25 Slayers on every boss actually wear</div><div class="bs">Every roll line, crystal, accessory and glyph, measured from their best parses. Start there if you want the numbers behind anything below.</div></div><span class="ba">Build data &rarr;</span></a>
+
+<h3>Crystals</h3>
+<div class="two">
+<div>
+<ul class="tight">
+<li><b>Armor:</b> 4× Hardy (blue) for boss damage</li>
+<li><b>Accessories:</b> 4× Keen Vyrsk (green crit)</li>
+<li><b>Weapon:</b> Savage, Bitter, Focused, Pounding</li>
+</ul>
+<p>Once you have enough crit rate you may want to switch the green crit crystals to green power. If you are less geared and short on crit, swapping Pounding for a Carving (+crit) is viable early.</p>
+</div>
+<div id="crystalData"></div>
+</div>
+
+<h3>Weapon rolls</h3>
+<p>The god roll is <b>2× enrage damage, cooldown reduction, back attack</b>. There are plenty of fine alternatives among the % damage lines, and an argument for attack speed. Generally avoid MP lines, low crit power, and increasingly Crit Factor — it loses value on the weapon as you gear up.</p>
+<div id="weaponData"></div>
+
+<h3>Armor rolls</h3>
+<div class="two">
+<div>
+<ul class="tight">
+<li><b>Chest:</b> <span class="sk" data-sk="Overhand Strike"></span> <b>+10%</b> is the important one. Then enrage damage reduction, then max HP.</li>
+<li><b>Gloves:</b> any offensive stat. Power and attack speed are my preference, but any of them work.</li>
+<li><b>Boots:</b> 6% movement speed, alongside endurance.</li>
+</ul>
+</div>
+<div id="armorData"></div>
+</div>
+
+<h3>Accessory rolls</h3>
+<p>Same as gloves: take any valuable offensive stat from the pool, with Power probably the most valuable.</p>
+</section>
+
+<section>
+<h2>Stat caps and accessories</h2>
+<p>How much crit to go for, and which accessories, changes as you clear new content and upgrade gear. As of Patch 0.04 a solid setup is:</p>
+<ul class="tight">
+<li>1× Titan + 1× Monarch earrings</li>
+<li>1× Titan + 1× Monarch rings</li>
+<li>1× Monarch necklace</li>
+</ul>
+<p>The longer answer: you want crit only up to a point, then you move into Power, cooldown reduction and attack speed. To gauge where you are, open Shinra DPS Meter mid-fight by right-clicking your name and check your crit rate — it should be around or above 80% on a decent fight.</p>
+<p>Gearing up with etchings and new accessories is what lets you start shifting selective stats into Power. You will juggle this every time you get new gear or reroll.</p>
+<div id="jewelData"></div>
+
+<h3>Brooch</h3>
+<p>Both cooldown reduction and attack speed brooches are good. On test servers attack speed performed slightly better in a vacuum, but that assumes CDR rolls on weapon and etchings. Both work well.</p>
+<div class="callout"><b>Watch your MP.</b> On attack speed under party buffs you will very likely go OOM even with charm. If you find yourself running out of things to hit off cooldown to chain, that is a sign you need more CDR.</div>
+<div id="broochData"></div>
+</section>
+
+<section>
+<h2>Glyphs</h2>
+<p>There is flexibility in how you glyph Slayer depending on how you want to play. Baseline picks first, then the flexible ones.</p>
+<div class="tierhead"><span class="dot red"></span>Baseline — take these</div>
+<p style="margin:0 0 8px">They meaningfully contribute to the damage of the class and most people agree on them.</p>
+<div class="gcards" id="gRed"></div>
+<div class="tierhead"><span class="dot yel"></span>High-value utility</div>
+<p style="margin:0 0 8px">Worth picking up if you have the points spare and they fit what you need.</p>
+<div class="gcards" id="gYel"></div>
+<div class="tierhead"><span class="dot blu"></span>Playstyle</div>
+<p style="margin:0 0 8px">These depend entirely on how you want to play — experiment.</p>
+<div class="gcards" id="gBlu"></div>
+<p class="note">Tiers are ordered by how widely the top 25 players per boss actually run each glyph. <a href="../slayer-build/" style="color:var(--bar)">Full adoption table →</a></p>
+
+<h3>Notes on the flexible picks</h3>
+<ul class="tight">
+<li>The 50% damage reduction is a comfortable buffer for non-one-shots, but has less value the harder the content you progress. Since you want to keep the <span class="sk" data-sk="Knockdown Strike"></span> buff rolling at all times, you cannot really treat it as an on-demand defensive.</li>
+<li>In this version of Slayer you hit your chain starters a lot, so anything that speeds them up compounds. The <span class="sk" data-sk="Fury Strike"></span> glyph has a speed-up component for <span class="sk" data-sk="Whirlwind"></span> — it makes Whirlwind come out really fast. I enjoy that, so I glyph it, and since I use <span class="sk" data-sk="Fury Strike"></span> more I also take its damage glyph. Fury Strike does poor damage, but glyphed it is fast and very safe: easy to cancel out of.</li>
+<li>Some people prefer the damage of <span class="sk" data-sk="Stunning Backhand"></span>. Some prioritise resets on <span class="sk" data-sk="Heart Thrust"></span>; I find that one miserable to use, and even on a reset I usually have an alternative button to press. None of this is clearly optimal, which is why it is stylistic.</li>
+<li><span class="sk" data-sk="Startling Kick"></span> has a lot of utility value. I have not glyphed anything there, but several options look fun and strong.</li>
+<li><span class="sk" data-sk="Distant Blade"></span> and auto-attack speed glyphs give a nice attack speed buff. Distant Blade is useful to gap-close and chain into <span class="sk" data-sk="Knockdown Strike"></span>; both can also be used for boss hitbox pushback.</li>
+</ul>
+</section>
+
+<section>
+<h2>Rotation</h2>
+<p>Roughly half your damage is <span class="sk" data-sk="Overhand Strike"></span>, followed by <span class="sk" data-sk="Measured Slice"></span>. So the whole game is chaining cleanly into Overhand Strike as often as possible.</p>
+<div id="dmgData"></div>
+<p>Our most important glyph is the reset chance on Overhand Strike. It starts around 50%, goes to 66%, then 70% as you upgrade it. That is strong because you can follow almost any skill with Overhand Strike — except itself.</p>
+<h3>The basic chain</h3>
+<div class="chain" id="chain"></div>
+<p>The gamble is whether the reset comes. During <span class="sk" data-sk="In Cold Blood"></span> that chance is 100%.</p>
+<h3>Buff upkeep priority</h3>
+<p>Which starter you use follows a rough priority based on keeping three buffs rolling:</p>
+<ol class="steps">
+<li><span class="sk" data-sk="Knockdown Strike"></span> — doubles crit chance</li>
+<li><span class="sk" data-sk="Eviscerate"></span> — gives <span class="sk" data-sk="Overhand Strike"></span> and <span class="sk" data-sk="Measured Slice"></span> extra damage</li>
+<li><span class="sk" data-sk="Whirlwind"></span> — +10% flat damage</li>
+</ol>
+<p>If you are new, this mostly means hit everything as soon as it comes up. <span class="sk" data-sk="Knockdown Strike"></span>, <span class="sk" data-sk="Heart Thrust"></span> and <span class="sk" data-sk="Whirlwind"></span> are the starters to prioritise.</p>
+<div class="callout"><b>Never raw-dog <span class="sk" data-sk="Whirlwind"></span> without <span class="sk" data-sk="Headlong Rush"></span>.</b> Do not use it unless you can chain out of it — on its own it is giga slow and will get you killed.</div>
+<h3>Example opener</h3>
+<p>Once you are slaying you will mostly hit whatever starter is available and smash <span class="sk" data-sk="Overhand Strike"></span>, but this is a clean opener to work from.</p>
+<div class="seq" id="opener"></div>
+<p class="note">I prefer getting as many Overhand Strikes into the boss during burst as I can before mechanics start, so Headlong Rush goes late here rather than early — it is then up for the next rotation. That is a personal choice, not a rule. The one piece of general consensus: always start with the double-crit buff, because it is giga strong and cancels fast out of the animation.</p>
+</section>
+
+<section>
+<h2>Advanced rotation tips</h2>
+<h3>Never drift Overhand Strike</h3>
+<p>You can spacebar effectively, but outside of <span class="sk" data-sk="In Cold Blood"></span> you are gambling on the reset. If you always gamble, there will be a moment where Overhand Strike is about to come off cooldown, you do not get the reset, and your starter is also on cooldown — leaving you auto-attacking awkwardly.</p>
+<p>So watch how fast Overhand Strike is coming off cooldown. Pause the monkey-Slayer brain and consider saving a starter.</p>
+<p>Say <span class="sk" data-sk="Measured Slice"></span> has <b>3 seconds</b> left on cooldown and everything else is up.</p>
+<div class="seqbox bad"><div class="seqlab">Instead of this</div><div class="seq" id="seqBad"></div><div class="seqnote">No reset, half a second left on Measured Slice — and now Overhand Strike is on cooldown too.</div></div>
+<div class="seqbox good"><div class="seqlab">Do this</div><div class="seq" id="seqGood"></div><div class="seqnote">Heart Thrust’s longer animation means the chain does not run out before Measured Slice comes off cooldown.</div></div>
+<p>You can use <span class="sk" data-sk="Distant Blade"></span> to chain into <span class="sk" data-sk="Knockdown Strike"></span> during your rotation if you want to gamble for attack speed. In tests this came out very neutral, since the proc is random — but it helps because Distant Blade pushes you forward and doubles as a repositioning tool.</p>
+<h3>Line up Measured Slice behind a Whirlwind</h3>
+<p>If you know <span class="sk" data-sk="Measured Slice"></span> will be available in your next chain, prioritise <span class="sk" data-sk="Whirlwind"></span> as the starter so Measured Slice comes out buffed.</p>
+<p><span class="sk" data-sk="Startling Kick"></span> as a starter: do not brainlessly spam it if you know a stun mechanic is coming. It is fast, but without something to chain out of it the animation is really slow.</p>
+</section>
+
+<section>
+<h2>Repositioning</h2>
+<p>The core problem with Slayer is that our defensives are also our mobility, so we constantly choose between keeping iframes up and losing uptime by not being behind the boss.</p>
+<p>This is where <span class="sk" data-sk="Startling Kick"></span> comes in, and it is our strongest repositioning tool that new Slayers do not use enough. I always try to keep it out of the normal rotation for exactly this reason.</p>
+<h3>Abusing boss pushback</h3>
+<p>For bosses that jump backwards (Dragon's Landing, for example): as the boss jumps back, hold S and time the <span class="sk" data-sk="Startling Kick"></span> so you end up inside the boss hitbox. From there you can abuse your chains — or even <span class="sk" data-sk="Distant Blade"></span> and auto attacks — to get pushed out directly behind the boss.</p>
+<div class="callout"><b>Dodge rolling for position.</b> Always roll <b>through</b> the boss, never off to the side at an angle. Roll directly to the back, and if you can reach, use the pushback trick to get spat out there. The worst thing you can do is double dodge roll for positioning — that is probably the number one reason you die.</div>
+</section>
+
+<section>
+<h2>Managing defensives</h2>
+<p>This is the hardest part of playing Slayer. We have two skills that give iframes: <span class="sk" data-sk="Backstab"></span> and dodge roll.</p>
+<h3>Backstab</h3>
+<p>It bugs easily when the boss moves out of range or there is no space to teleport behind. The startup is slow and it does not chain into anything, so taking the glyph for +% speed on other skills is a bit of a grief pick. The good news: you are invulnerable during the travel and for a short window afterwards.</p>
+<h3>Dodge roll</h3>
+<p>Understanding and planning your rolls is what keeps you alive. Slayer is unusual in getting two rolls back to back on a 4-second cooldown — but rolling twice in a row is the worst thing you can do.</p>
+<p>Because you store a charge: roll once, wait 4 seconds, and the charge replenishes — so you can roll again, and then twice more if you need to.</p>
+<ol class="steps">
+<li>Use your first dodge on the incoming attack.</li>
+<li>Handle the second attack another way — reposition early, or use the <span class="sk" data-sk="Backstab"></span> iframe.</li>
+<li>By then your charges have refreshed, and you have two iframes available if you need them.</li>
+</ol>
+</section>
+
+<section>
+<h2>Where the numbers come from</h2>
+<div class="linkcard"><div class="t" id="srcNote"></div><a href="../slayer-build/">Build data →</a></div>
+</section>
+</div>
+<script>
+const C={"icons": {"Evasive Roll": "../icons/icon_skills.tumbling_tex.webp", "Combo Attack": "../icons/icon_skills.comboattack_tex.webp", "Overpower": "../icons/icon_skills.gatheringstrength_tex.webp", "Retaliate": "../icons/icon_skills.risingattack_tex.webp", "Knockdown Strike": "../icons/icon_skills.handyslash_tex.webp", "Whirlwind": "../icons/icon_skills.sworddance_tex.webp", "Dash": "../icons/icon_skills.dash_tex.webp", "Headlong Rush": "../icons/icon_skills.advancingleap_tex.webp", "Leaping Strike": "../icons/icon_skills.downblow_tex.webp", "Distant Blade": "../icons/icon_skills.tripleslash_tex.webp", "Startling Kick": "../icons/icon_skills.retreatingkick_tex.webp", "Overhand Strike": "../icons/icon_skills.cuttingslash_tex.webp", "Tenacity": "../icons/icon_skills.tenacity_tex.webp", "Exhausting Blow": "../icons/icon_skills.veinslash_tex.webp", "In Cold Blood": "../icons/icon_skills.destructionvigor_tex.webp", "Heart Thrust": "../icons/icon_skills.stingerblade_tex.webp", "Backstab": "../icons/icon_skills.turnaroundattack_tex.webp", "Fury Strike": "../icons/icon_skills.ragingstrike_tex.webp", "Stunning Backhand": "../icons/icon_skills.flatblade_tex.webp", "Eviscerate": "../icons/icon_skills.jawbreaker_tex.webp", "Measured Slice": "../icons/icon_skills.cuthead_tex.webp"}, "glyphs": {"Carving Measured Slice": {"share": 1.0, "icon": "../icons/crestpassivecriticalup_tex.webp", "points": 4, "skill": "Measured Slice", "desc": "Triples the chance to crit."}, "Empowered Eviscerate": {"share": 1.0, "icon": "../icons/crestpassiveattackup_tex.webp", "points": 5, "skill": "Eviscerate", "desc": "Increases skill damage by $value."}, "Empowered Heart Thrust": {"share": 1.0, "icon": "../icons/crestpassiveattackup_tex.webp", "points": 5, "skill": "Heart Thrust", "desc": "Increases skill damage by $value."}, "Empowered Knockdown Strike": {"share": 1.0, "icon": "../icons/crestpassiveattackup_tex.webp", "points": 5, "skill": "Knockdown Strike", "desc": "Increases skill damage by $value."}, "Empowered Measured Slice": {"share": 1.0, "icon": "../icons/crestpassiveattackup_tex.webp", "points": 3, "skill": "Measured Slice", "desc": "Increases skill damage by 30%."}, "Persistent Overhand Strike": {"share": 1.0, "icon": "../icons/crestactivecooltimereset_tex.webp", "points": 2, "skill": "Overhand Strike", "desc": "66% chance to eliminate cooldown."}, "Powerlinked Eviscerate": {"share": 1.0, "icon": "../icons/crestnextskillattackup_tex.webp", "points": 2, "skill": "Eviscerate", "desc": "Increases damage of Measured Slice by 25% for a few seconds"}, "Powerlinked Knockdown Strike": {"share": 1.0, "icon": "../icons/crestnextskillattackup_tex.webp", "points": 2, "skill": "Knockdown Strike", "desc": "Increases damage of Whirlwind by 25% for a few seconds."}, "Boosted Overpower": {"share": 0.9852941176470589, "icon": "../icons/crestpassiveattackup_tex.webp", "points": 3, "skill": "Overpower", "desc": "Adds 10% skill damage to the next attack."}, "Energetic Eviscerate": {"share": 0.9705882352941176, "icon": "../icons/crestpassivecooltimedown_tex.webp", "points": 4, "skill": "Eviscerate", "desc": "Decreases cooldown by $value."}, "Persistent Heart Thrust": {"share": 0.8382352941176471, "icon": "../icons/crestactivecooltimereset_tex.webp", "points": 4, "skill": "Heart Thrust", "desc": "$prob chance to eliminate cooldown."}, "Carving Knockdown Strike": {"share": 0.8235294117647058, "icon": "../icons/crestpassivecriticalup_tex.webp", "points": 3, "skill": "Knockdown Strike", "desc": "Doubles the chance to crit for 8 seconds."}, "Swift Distant Blade": {"share": 0.6176470588235294, "icon": "../icons/crestactiveattackspeedup_tex.webp", "points": 2, "skill": "Distant Blade", "desc": "$prob chance to increase attack speed 15% for 10 seconds."}, "Energetic Headlong Rush": {"share": 0.6176470588235294, "icon": "../icons/crestpassivecooltimedown_tex.webp", "points": 5, "skill": "Headlong Rush", "desc": "Decreases cooldown by $value."}, "Energetic Triumphant Shout": {"share": 0.5294117647058824, "icon": "../icons/crestpassivedeffeceup_tex.webp", "points": 3, "skill": "Triumphant Shout", "desc": "Decreases cooldown by $value."}, "Swift Startling Kick": {"share": 0.4264705882352941, "icon": "../icons/crestpassiveskillspeedup_tex.webp", "points": 3, "skill": "Startling Kick", "desc": "Increases attack speed of Startling Kick by $value."}, "Persistent Evasive Roll": {"share": 0.38235294117647056, "icon": "../icons/crestactivecooltimereset_tex.webp", "points": 4, "skill": "Evasive Roll", "desc": "$prob chance to eliminate cooldown."}, "Blazing In Cold Blood": {"share": 0.35294117647058826, "icon": "../icons/crestnextskillattackspeedup_tex.webp", "points": 2, "skill": "In Cold Blood", "desc": "Speeds casting of Heart Thrust by 25% for a few seconds."}, "Energetic Backstab": {"share": 0.3235294117647059, "icon": "../icons/crestpassivecooltimedown_tex.webp", "points": 5, "skill": "Backstab", "desc": "Decreases cooldown by $value."}, "Empowered Fury Strike": {"share": 0.3088235294117647, "icon": "../icons/crestpassiveattackup_tex.webp", "points": 5, "skill": "Fury Strike", "desc": "Increases skill damage by $value."}, "Blazing Fury Strike": {"share": 0.27941176470588236, "icon": "../icons/crestnextskillattackspeedup_tex.webp", "points": 4, "skill": "Fury Strike", "desc": "Speeds casting of Whirlwind by 25% for a few seconds."}, "Empowered Stunning Backhand": {"share": 0.2647058823529412, "icon": "../icons/crestpassiveattackup_tex.webp", "points": 4, "skill": "Stunning Backhand", "desc": "Increases skill damage by $value."}, "Keen Overpower": {"share": 0.17647058823529413, "icon": "../icons/crestpassivecriticalup_tex.webp", "points": 4, "skill": "Overpower", "desc": "Doubles Crit Factor for the next attack."}, "Powerlinked Headlong Rush": {"share": 0.10294117647058823, "icon": "../icons/crestpassiveattackup_tex.webp", "points": 4, "skill": "Headlong Rush", "desc": "Increases damage of Knockdown Strike by 25% for a few seconds."}, "Blazing Startling Kick": {"share": 0.058823529411764705, "icon": "../icons/crestnextskillattackspeedup_tex.webp", "points": 4, "skill": "Startling Kick", "desc": "Speeds casting of Heart Thrust by 25% for a few seconds."}}, "rotation": [{"name": "Overhand Strike", "n": 61, "share": 48.41048298646513, "cpm": 17.468354430379748, "crit": 75.47169811320755}, {"name": "Measured Slice", "n": 63, "share": 18.56166053026659, "cpm": 4.69437652811736, "crit": 100.0}, {"name": "Eviscerate", "n": 63, "share": 13.146240128925248, "cpm": 6.3354037267080745, "crit": 55.55555555555556}, {"name": "Whirlwind", "n": 63, "share": 7.474067533693116, "cpm": 6.818181818181818, "crit": 75.0}, {"name": "Heart Thrust", "n": 61, "share": 6.821975581995236, "cpm": 3.4482758620689653, "crit": 56.0}, {"name": "Knockdown Strike", "n": 63, "share": 3.7270022495023003, "cpm": 4.426229508196721, "crit": 27.77777777777778}, {"name": "(unnamed)", "n": 634, "share": 0.8337705686295139, "cpm": 1.653191368217275, "crit": 50.0}, {"name": "Distant Blade", "n": 42, "share": 0.5897084740917655, "cpm": 3.2353890862124635, "crit": 32.18390804597701}, {"name": "Stunning Backhand", "n": 55, "share": 0.512167476044462, "cpm": 1.1764705882352942, "crit": 40.0}, {"name": "Fury Strike", "n": 47, "share": 0.44221142294427995, "cpm": 1.6666666666666667, "crit": 40.0}, {"name": "Startling Kick", "n": 60, "share": 0.34599611948992254, "cpm": 1.09317713332599, "crit": 40.0}, {"name": "Backstab", "n": 57, "share": 0.13855905884807962, "cpm": 0.6766917293233082, "crit": 20.0}, {"name": "Leaping Strike", "n": 35, "share": 0.05472772967847526, "cpm": 0.43010752688172044, "crit": 33.333333333333336}, {"name": "Combo Attack", "n": 22, "share": 0.03592281584762949, "cpm": 0.8192259790580746, "crit": 0.0}], "crystals": {"Weapon": {"n": 107, "sets": [{"value": "Bitter Niveot + Focused Niveot + Pounding Niveot + Savage Niveot", "n": 98, "share": 0.9158878504672897}, {"value": "Bitter Niveot + Focused Niveot + Pounding Niveot + Savage Crux", "n": 6, "share": 0.056074766355140186}, {"value": "Acrimonious Niveot + Focused Niveot + Pounding Niveot + Savage Niveot", "n": 1, "share": 0.009345794392523364}, {"value": "Bitter Niveot + Focused Niveot + Savage Niveot + Slaying Niveot", "n": 1, "share": 0.009345794392523364}], "singles": [{"value": "Focused Niveot", "n": 107, "share": 1.0}, {"value": "Bitter Niveot", "n": 106, "share": 0.9906542056074766}, {"value": "Pounding Niveot", "n": 105, "share": 0.9813084112149533}, {"value": "Savage Niveot", "n": 101, "share": 0.9439252336448598}, {"value": "Savage Crux", "n": 6, "share": 0.056074766355140186}, {"value": "Acrimonious Niveot", "n": 1, "share": 0.009345794392523364}]}, "Chest armor": {"n": 107, "sets": [{"value": "Hardy Niveot + Hardy Niveot + Hardy Niveot + Hardy Niveot", "n": 98, "share": 0.9158878504672897}, {"value": "Hardy Crux + Hardy Crux + Hardy Crux + Hardy Crux", "n": 4, "share": 0.037383177570093455}, {"value": "Hardy Crux + Hardy Crux + Hardy Crux + Hardy Niveot", "n": 2, "share": 0.018691588785046728}, {"value": "Hardy Crux + Hardy Crux + Hardy Niveot + Hardy Niveot", "n": 1, "share": 0.009345794392523364}], "singles": [{"value": "Hardy Niveot", "n": 400, "share": 3.7383177570093458}, {"value": "Hardy Crux", "n": 24, "share": 0.22429906542056074}, {"value": "Anarchic Crux", "n": 3, "share": 0.028037383177570093}, {"value": "Poised Niveot", "n": 1, "share": 0.009345794392523364}]}, "Ring (left)": {"n": 107, "sets": [{"value": "Keen Vyrsk", "n": 102, "share": 0.9532710280373832}, {"value": "Powerful Vyrsk", "n": 3, "share": 0.028037383177570093}, {"value": "Pristine Powerful Zyrk", "n": 2, "share": 0.018691588785046728}], "singles": [{"value": "Keen Vyrsk", "n": 102, "share": 0.9532710280373832}, {"value": "Powerful Vyrsk", "n": 3, "share": 0.028037383177570093}, {"value": "Pristine Powerful Zyrk", "n": 2, "share": 0.018691588785046728}]}, "Ring (right)": {"n": 107, "sets": [{"value": "Keen Vyrsk", "n": 102, "share": 0.9532710280373832}, {"value": "Powerful Vyrsk", "n": 3, "share": 0.028037383177570093}, {"value": "Pristine Powerful Zyrk", "n": 2, "share": 0.018691588785046728}], "singles": [{"value": "Keen Vyrsk", "n": 102, "share": 0.9532710280373832}, {"value": "Powerful Vyrsk", "n": 3, "share": 0.028037383177570093}, {"value": "Pristine Powerful Zyrk", "n": 2, "share": 0.018691588785046728}]}, "Earring (left)": {"n": 107, "sets": [{"value": "Keen Vyrsk", "n": 102, "share": 0.9532710280373832}, {"value": "Powerful Vyrsk", "n": 3, "share": 0.028037383177570093}, {"value": "Pristine Powerful Zyrk", "n": 2, "share": 0.018691588785046728}], "singles": [{"value": "Keen Vyrsk", "n": 102, "share": 0.9532710280373832}, {"value": "Powerful Vyrsk", "n": 3, "share": 0.028037383177570093}, {"value": "Pristine Powerful Zyrk", "n": 2, "share": 0.018691588785046728}]}, "Earring (right)": {"n": 107, "sets": [{"value": "Keen Vyrsk", "n": 102, "share": 0.9532710280373832}, {"value": "Powerful Vyrsk", "n": 3, "share": 0.028037383177570093}, {"value": "Pristine Powerful Zyrk", "n": 2, "share": 0.018691588785046728}], "singles": [{"value": "Keen Vyrsk", "n": 102, "share": 0.9532710280373832}, {"value": "Powerful Vyrsk", "n": 3, "share": 0.028037383177570093}, {"value": "Pristine Powerful Zyrk", "n": 2, "share": 0.018691588785046728}]}}, "gearRolls": {"Weapon": {"n": 107, "slots": 4, "lines": [{"value": "+ 9.3% vs enraged", "raw": "Increases damage by 9.3% when attacking enraged monsters.", "n": 152, "share": 0.9532710280373832, "avg": 1.4205607476635513, "dbl": 0.4672897196261682}, {"value": "-skill cooldowns 7.2%", "raw": "Decreases skill cooldowns by 7.2%.", "n": 104, "share": 0.822429906542056, "avg": 0.9719626168224299, "dbl": 0.14953271028037382}, {"value": "+ 6.0%", "raw": "Increases damage by 6.0%.", "n": 72, "share": 0.6728971962616822, "avg": 0.6728971962616822, "dbl": 0.0}, {"value": "+ 6.9% vs from behind", "raw": "Increases damage by 6.9% when attacking from behind.", "n": 62, "share": 0.5794392523364486, "avg": 0.5794392523364486, "dbl": 0.0}, {"value": "Increase Crit Power 30%", "raw": "Increase Crit Power by 30%.", "n": 14, "share": 0.1308411214953271, "avg": 0.1308411214953271, "dbl": 0.0}, {"value": "+Attack Speed 9.0%", "raw": "Increases Attack Speed by 9.0%.", "n": 14, "share": 0.1308411214953271, "avg": 0.1308411214953271, "dbl": 0.0}, {"value": "+Attack Speed 4.5%", "raw": "Increases Attack Speed by 4.5%.", "n": 4, "share": 0.037383177570093455, "avg": 0.037383177570093455, "dbl": 0.0}, {"value": "+ 8.6% to the target with the most aggro toward you", "raw": "Increases damage by 8.6% to the target with the most aggro toward you.", "n": 3, "share": 0.028037383177570093, "avg": 0.028037383177570093, "dbl": 0.0}], "combos": [{"value": ["-skill cooldowns 7.2%", "+ 6.0%", "+ 6.9% vs from behind", "+ 9.3% vs enraged"], "n": 20, "share": 0.18691588785046728}, {"value": ["-skill cooldowns 7.2%", "+ 6.0%", "+ 9.3% vs enraged", "+ 9.3% vs enraged"], "n": 18, "share": 0.16822429906542055}, {"value": ["-skill cooldowns 7.2%", "+ 6.9% vs from behind", "+ 9.3% vs enraged", "+ 9.3% vs enraged"], "n": 16, "share": 0.14953271028037382}]}, "Chest": {"n": 107, "slots": 4, "lines": [{"value": "+Overhand Strike 10.0%", "raw": "Increases damage of Overhand Strike by 10.0%.", "n": 102, "share": 0.9532710280373832, "avg": 0.9532710280373832, "dbl": 0.0}, {"value": "-damage from enraged 10.0%", "raw": "Decreases damage from enraged monsters by 10.0%.", "n": 74, "share": 0.6915887850467289, "avg": 0.6915887850467289, "dbl": 0.0}, {"value": "-dmg taken 6.0%", "raw": "Decreases damage taken by 6.0%.", "n": 60, "share": 0.5607476635514018, "avg": 0.5607476635514018, "dbl": 0.0}, {"value": "Raises max HP 8.0%", "raw": "Raises max HP by 8.0%.", "n": 50, "share": 0.4672897196261682, "avg": 0.4672897196261682, "dbl": 0.0}, {"value": "-dmg taken from frontal attacks 6.9%", "raw": "Decreases damage taken from frontal attacks by 6.9%.", "n": 39, "share": 0.3644859813084112, "avg": 0.3644859813084112, "dbl": 0.0}, {"value": "Healing skills affecting you increase 6.0%", "raw": "Healing skills affecting you increase by 6.0%.", "n": 23, "share": 0.21495327102803738, "avg": 0.21495327102803738, "dbl": 0.0}, {"value": "30% chance to recover HP when combat starts", "raw": "30% chance to recover HP when combat starts.", "n": 20, "share": 0.18691588785046728, "avg": 0.18691588785046728, "dbl": 0.0}, {"value": "-dmg taken while knocked down 6.9%", "raw": "Decreases damage taken while knocked down by 6.9%.", "n": 19, "share": 0.17757009345794392, "avg": 0.17757009345794392, "dbl": 0.0}], "combos": [{"value": ["-damage from enraged 10.0%", "-dmg taken 6.0%", "+Overhand Strike 10.0%", "Raises max HP 8.0%"], "n": 15, "share": 0.14018691588785046}, {"value": ["-damage from enraged 10.0%", "-dmg taken 6.0%", "-dmg taken from frontal attacks 6.9%", "+Overhand Strike 10.0%"], "n": 14, "share": 0.1308411214953271}, {"value": ["-damage from enraged 10.0%", "-dmg taken 6.0%", "-dmg taken while knocked down 6.9%", "+Overhand Strike 10.0%"], "n": 7, "share": 0.06542056074766354}]}, "Gloves": {"n": 107, "slots": 3, "lines": [{"value": "+Crit Factor 9", "raw": "Increases Crit Factor by 9.", "n": 102, "share": 0.9532710280373832, "avg": 0.9532710280373832, "dbl": 0.0}, {"value": "+Power 5", "raw": "Increases Power by 5.", "n": 99, "share": 0.9252336448598131, "avg": 0.9252336448598131, "dbl": 0.0}, {"value": "+Attack Speed 2.2%", "raw": "Increases Attack Speed by 2.2%.", "n": 89, "share": 0.8317757009345794, "avg": 0.8317757009345794, "dbl": 0.0}, {"value": "+your healing skills 6.0%", "raw": "Increases your healing skills by 6.0%.", "n": 14, "share": 0.1308411214953271, "avg": 0.1308411214953271, "dbl": 0.0}, {"value": "+0.2% of total HP when skill hits target", "raw": "Recovers 0.2% of total HP when skill hits target.", "n": 6, "share": 0.056074766355140186, "avg": 0.056074766355140186, "dbl": 0.0}, {"value": "+1% of total MP every 5 seconds", "raw": "Replenishes 1% of total MP every 5 seconds.", "n": 6, "share": 0.056074766355140186, "avg": 0.056074766355140186, "dbl": 0.0}, {"value": "+Endurance 4", "raw": "Increases Endurance by 4.", "n": 5, "share": 0.04672897196261682, "avg": 0.04672897196261682, "dbl": 0.0}], "combos": [{"value": ["+Attack Speed 2.2%", "+Crit Factor 9", "+Power 5"], "n": 78, "share": 0.7289719626168224}, {"value": ["+Crit Factor 9", "+Power 5", "+your healing skills 6.0%"], "n": 11, "share": 0.102803738317757}, {"value": ["+Attack Speed 2.2%", "+Crit Factor 9", "+1% of total MP every 5 seconds"], "n": 6, "share": 0.056074766355140186}]}, "Boots": {"n": 107, "slots": 3, "lines": [{"value": "+Movement Speed 6.0%", "raw": "Increases Movement Speed by 6.0%.", "n": 93, "share": 0.8691588785046729, "avg": 0.8691588785046729, "dbl": 0.0}, {"value": "+Endurance 4", "raw": "Increases Endurance by 4.", "n": 81, "share": 0.7570093457943925, "avg": 0.7570093457943925, "dbl": 0.0}, {"value": "+2% of total MP every 5 seconds", "raw": "Replenishes 2% of total MP every 5 seconds.", "n": 43, "share": 0.40186915887850466, "avg": 0.40186915887850466, "dbl": 0.0}, {"value": "+resistance to knockdown and stagger from boss attacks 65%", "raw": "Increases resistance to knockdown and stagger from boss attacks by 65%.", "n": 34, "share": 0.3177570093457944, "avg": 0.3177570093457944, "dbl": 0.0}, {"value": "-duration of slowing effects 76%", "raw": "Decreases duration of slowing effects by 76%.", "n": 27, "share": 0.2523364485981308, "avg": 0.2523364485981308, "dbl": 0.0}, {"value": "+Balance Factor 10", "raw": "Increases Balance Factor by 10.", "n": 22, "share": 0.205607476635514, "avg": 0.205607476635514, "dbl": 0.0}, {"value": "+0.6% of total HP every 5 seconds", "raw": "Recovers 0.6% of total HP every 5 seconds.", "n": 21, "share": 0.19626168224299065, "avg": 0.19626168224299065, "dbl": 0.0}], "combos": [{"value": ["+Endurance 4", "+Movement Speed 6.0%", "+resistance to knockdown and stagger from boss attacks 65%"], "n": 22, "share": 0.205607476635514}, {"value": ["+Endurance 4", "+Movement Speed 6.0%", "+2% of total MP every 5 seconds"], "n": 16, "share": 0.14953271028037382}, {"value": ["-duration of slowing effects 76%", "+Endurance 4", "+Movement Speed 6.0%"], "n": 14, "share": 0.1308411214953271}]}}, "runs": {"jewelry": [{"value": "5 Monarch / 0 Titan", "n": 26, "share": 0.24299065420560748}, {"value": "4 Monarch / 1 Titan", "n": 11, "share": 0.102803738317757}, {"value": "3 Monarch / 2 Titan", "n": 62, "share": 0.5794392523364486}, {"value": "2 Monarch / 3 Titan", "n": 5, "share": 0.04672897196261682}, {"value": "0 Monarch / 5 Titan", "n": 3, "share": 0.028037383177570093}], "brooch": [{"value": "Chrono Brooch", "n": 83, "share": 0.7757009345794392}, {"value": "Crimson Brooch", "n": 23, "share": 0.21495327102803738}, {"value": "Kumasylum Brooch", "n": 1, "share": 0.009345794392523364}], "belt": [{"value": "Girdle of the Titans", "n": 89, "share": 1.0}], "weapon": [{"value": "Severed Fang", "n": 107, "share": 1.0}], "wEnch": [{"value": 6, "n": 97, "share": 0.9065420560747663}, {"value": 7, "n": 6, "share": 0.056074766355140186}, {"value": 8, "n": 4, "share": 0.037383177570093455}], "crystals": [{"value": "Bitter Niveot + Focused Niveot + Pounding Niveot + Savage Niveot", "n": 98, "share": 0.9158878504672897}, {"value": "Bitter Niveot + Focused Niveot + Pounding Niveot + Savage Crux", "n": 6, "share": 0.056074766355140186}, {"value": "Acrimonious Niveot + Focused Niveot + Pounding Niveot + Savage Niveot", "n": 1, "share": 0.009345794392523364}, {"value": "Bitter Niveot + Focused Niveot + Savage Niveot + Slaying Niveot", "n": 1, "share": 0.009345794392523364}, {"value": "Bitter Niveot + Carving Niveot + Focused Niveot + Savage Niveot", "n": 1, "share": 0.009345794392523364}], "wRolls": [{"value": "Attack Speed", "n": 107, "share": 1.0}, {"value": "Skill damage", "n": 107, "share": 1.0}, {"value": "Dmg vs enraged", "n": 102, "share": 0.9532710280373832}, {"value": "Cooldown", "n": 88, "share": 0.822429906542056}, {"value": "Flat damage", "n": 72, "share": 0.6728971962616822}, {"value": "Dmg from behind", "n": 62, "share": 0.5794392523364486}, {"value": "Crit Power", "n": 14, "share": 0.1308411214953271}, {"value": "Other", "n": 4, "share": 0.037383177570093455}]}, "jewelry": [{"value": "5 Monarch / 0 Titan", "n": 26, "share": 0.24299065420560748}, {"value": "4 Monarch / 1 Titan", "n": 11, "share": 0.102803738317757}, {"value": "3 Monarch / 2 Titan", "n": 62, "share": 0.5794392523364486}, {"value": "2 Monarch / 3 Titan", "n": 5, "share": 0.04672897196261682}, {"value": "0 Monarch / 5 Titan", "n": 3, "share": 0.028037383177570093}], "split": {"board": "Dragon's Landing / Calamity Helghan", "n": 25, "top": {"n": 9, "players": 9, "dps": 579843, "cpm": 61.47239263803681, "crit": 69.2, "ilvl": 409.2517700195313, "power": 150, "critFactor": 186.50003051757812, "attack": 91201, "titan": 1.6666666666666667, "dur": 155, "skills": {"Knockdown Strike": {"cpm": 5.369871218927822, "share": 3.735164304571624, "crit": 30.330882352941174, "n": 8}, "Overhand Strike": {"cpm": 21.647727272727273, "share": 51.53332075011194, "crit": 80.07451564828614, "n": 8}, "Eviscerate": {"cpm": 7.83192499131844, "share": 12.970622485551742, "crit": 60.27777777777778, "n": 8}, "Measured Slice": {"cpm": 5.922093730979915, "share": 15.945722899564743, "crit": 100.0, "n": 8}, "Whirlwind": {"cpm": 8.733128834355828, "share": 7.24308571249893, "crit": 79.8582995951417, "n": 8}, "Heart Thrust": {"cpm": 4.289793759915389, "share": 7.143443553840549, "crit": 58.57142857142857, "n": 8}, "Startling Kick": {"cpm": 1.967741935483871, "share": 0.42218539242452013, "crit": 40.0, "n": 8}, "Fury Strike": {"cpm": 1.7969208211143695, "share": 0.34082668188505155, "crit": 42.92929292929293, "n": 6}, "Stunning Backhand": {"cpm": 1.5873015873015872, "share": 0.38024692450218256, "crit": 50.0, "n": 7}, "Leaping Strike": {"cpm": 0.5806451612903225, "share": 0.036197956460326315, "crit": 37.5, "n": 6}, "Distant Blade": {"cpm": 2.1818181818181817, "share": 0.4062316823955723, "crit": 54.16666666666667, "n": 6}, "Backstab": {"cpm": 0.9392440134573521, "share": 0.17024719099561153, "crit": 41.66666666666667, "n": 6}, "(unnamed)": {"cpm": 3.8571428571428577, "share": 2.0625868889712065, "crit": 80.47619047619048, "n": 12}, "Combo Attack": {"cpm": 0.7361963190184049, "share": 0.028408479413065162, "crit": 0.0, "n": 3}}}, "mid": {"n": 8, "players": 8, "dps": 501046.5, "cpm": 59.623629112662016, "crit": 63.25, "ilvl": 407.9481201171875, "power": 160.0, "critFactor": 165, "attack": 97281.0, "titan": 1.625, "dur": 177.0, "skills": {"Heart Thrust": {"cpm": 4.061884562945009, "share": 6.937643687609718, "crit": 62.27272727272727, "n": 6}, "Knockdown Strike": {"cpm": 5.251182698806037, "share": 4.9196552097455335, "crit": 44.505494505494504, "n": 6}, "Overhand Strike": {"cpm": 20.51731660758113, "share": 49.85813288188882, "crit": 76.13871635610766, "n": 6}, "Eviscerate": {"cpm": 6.742831397032793, "share": 12.400672351337423, "crit": 57.720588235294116, "n": 6}, "Measured Slice": {"cpm": 5.386389485656515, "share": 18.304466073866585, "crit": 100.0, "n": 6}, "Fury Strike": {"cpm": 4.024390243902439, "share": 0.776328491243965, "crit": 27.272727272727273, "n": 5}, "Whirlwind": {"cpm": 8.07826520438684, "share": 5.872257881049003, "crit": 67.55952380952381, "n": 6}, "Stunning Backhand": {"cpm": 1.846311164975004, "share": 0.7044181243889782, "crit": 40.0, "n": 6}, "Startling Kick": {"cpm": 1.4670014347202296, "share": 0.2525669792783624, "crit": 15.0, "n": 6}, "Backstab": {"cpm": 0.942459776383965, "share": 0.16738750013015227, "crit": 10.0, "n": 6}, "Distant Blade": {"cpm": 4.117647058823529, "share": 0.48668467321949105, "crit": 30.0, "n": 5}, "(unnamed)": {"cpm": 3.8113529662825436, "share": 3.9988232397314984, "crit": 72.11538461538461, "n": 22}}}, "bottom": {"n": 8, "players": 8, "dps": 454297.5, "cpm": 55.568842921784096, "crit": 67.25, "ilvl": 409.2517700195313, "power": 150.5, "critFactor": 168.0, "attack": 91505.0, "titan": 1.75, "dur": 190.0, "skills": {"Whirlwind": {"cpm": 9.157894736842104, "share": 6.521276152847451, "crit": 79.3103448275862, "n": 7}, "Knockdown Strike": {"cpm": 5.368421052631579, "share": 3.837809863517076, "crit": 33.333333333333336, "n": 7}, "Overhand Strike": {"cpm": 17.647058823529413, "share": 49.003934612545564, "crit": 80.0, "n": 7}, "Eviscerate": {"cpm": 7.0588235294117645, "share": 13.573364243891664, "crit": 65.0, "n": 7}, "Measured Slice": {"cpm": 5.5813953488372094, "share": 17.591373335943064, "crit": 100.0, "n": 7}, "Heart Thrust": {"cpm": 3.6263736263736264, "share": 6.769329785581487, "crit": 70.0, "n": 7}, "Backstab": {"cpm": 0.6976744186046512, "share": 0.0888672208838158, "crit": 40.0, "n": 5}, "Fury Strike": {"cpm": 1.7474235608950637, "share": 0.4190677079812129, "crit": 56.06060606060606, "n": 6}, "Startling Kick": {"cpm": 1.667929593626188, "share": 0.4644711533124083, "crit": 40.0, "n": 6}, "Stunning Backhand": {"cpm": 1.1913875598086123, "share": 0.5818585156698413, "crit": 51.42857142857143, "n": 6}, "Distant Blade": {"cpm": 2.526315789473684, "share": 0.3955813940245567, "crit": 27.272727272727273, "n": 5}, "Leaping Strike": {"cpm": 0.2989810843642313, "share": 0.03761815591547077, "crit": 100.0, "n": 4}, "(unnamed)": {"cpm": 2.1176470588235294, "share": 0.78794378743858, "crit": 42.85714285714286, "n": 14}}}}, "dataset": {"allParses": 359, "shortlistParses": 107, "players": 38, "boards": 12, "withGear": 107, "withGlyphs": 70, "ilvlLo": 394.98883056640625, "ilvlHi": 415.8443908691406, "ilvlMed": 409.2517700195313}};
+const pc=n=>n==null?'-':Math.round(n*100)+'%';
+const f1=n=>n==null?'-':n.toFixed(1);
+// inline skill chips
+document.querySelectorAll('.sk[data-sk]').forEach(el=>{const n=el.dataset.sk,ic=C.icons[n];
+ el.innerHTML=(ic?`<img src="${ic}" alt="">`:'')+n});
+// crystal data
+const cr=C.crystals;
+document.getElementById('crystalData').innerHTML=`<table><thead><tr><th>slot</th><th>what the top 25 run</th><th></th></tr></thead><tbody>`+
+ Object.entries(cr).map(([k,v])=>`<tr><td><b>${k}</b></td><td>${v.sets[0].value}</td><td class="n">${pc(v.sets[0].share)}</td></tr>`).join('')+`</tbody></table>`;
+// weapon rolls
+const wr=C.gearRolls.Weapon;
+document.getElementById('weaponData').innerHTML=`<table><thead><tr><th>weapon line</th><th>top 25 carrying it</th><th>running two</th></tr></thead><tbody>`+
+ wr.lines.slice(0,5).map(l=>`<tr><td><b>${l.value}</b></td><td>${pc(l.share)}</td><td class="n">${l.dbl>0?pc(l.dbl):'-'}</td></tr>`).join('')+`</tbody></table>`;
+// armor rolls
+document.getElementById('armorData').innerHTML=['Chest','Gloves','Boots'].map(k=>{const v=C.gearRolls[k];
+ return `<table style="margin-bottom:12px"><thead><tr><th>${k} · ${v.slots} rolls</th><th>top 25</th></tr></thead><tbody>`+
+ v.lines.slice(0,3).map(l=>`<tr><td>${l.value}</td><td class="n">${pc(l.share)}</td></tr>`).join('')+`</tbody></table>`}).join('');
+// jewelry
+const jw=C.jewelry.slice().sort((a,b)=>b.n-a.n)[0];
+document.getElementById('jewelData').innerHTML=`<div class="callout">That is the <b>${jw.value}</b> split, which <b>${pc(jw.share)}</b> of shortlisted players run — the most common setup by a distance. Measured crit rate across the shortlist sits at <b>${f1(C.split.top.crit)}%</b> for the top third of Calamity Helghan.</div>`;
+// brooch
+const br=C.runs.brooch;
+document.getElementById('broochData').innerHTML=`<table><thead><tr><th>brooch</th><th>top 25 running it</th></tr></thead><tbody>`+
+ br.map(b=>`<tr><td><b>${b.value}</b></td><td>${pc(b.share)}</td></tr>`).join('')+`</tbody></table>`;
+// glyph tiers by measured adoption
+const gl=Object.entries(C.glyphs).map(([n,g])=>({name:n,...g})).sort((a,b)=>b.share-a.share);
+const card=(g,cls)=>`<div class="gcard ${cls}">${g.icon?`<img src="${g.icon}" alt="">`:''}<div><div class="nm">${g.name}</div><div class="mt">${g.points?g.points+' pts · ':''}${pc(g.share)} of top 25${g.desc?' · '+g.desc:''}</div></div></div>`;
+const CORE=['Carving Knockdown Strike'], HIDE=['Keen Overpower'];
+const tier=g=>HIDE.includes(g.name)?null:(CORE.includes(g.name)||g.share>=0.9?'red':g.share>=0.35?'yel':g.share>=0.1?'blu':null);
+document.getElementById('gRed').innerHTML=gl.filter(g=>tier(g)==='red').map(g=>card(g,'red')).join('');
+document.getElementById('gYel').innerHTML=gl.filter(g=>tier(g)==='yel').map(g=>card(g,'yel')).join('');
+document.getElementById('gBlu').innerHTML=gl.filter(g=>tier(g)==='blu').map(g=>card(g,'blu')).join('');
+// damage split
+const rot=C.rotation.filter(r=>r.name!=='(unnamed)'&&r.share>=1);
+document.getElementById('dmgData').innerHTML=`<table><thead><tr><th>skill</th><th>share of damage</th><th>casts / min</th><th>crit rate</th></tr></thead><tbody>`+
+ rot.map(r=>`<tr><td><b>${r.name}</b></td><td><b>${f1(r.share)}%</b></td><td>${f1(r.cpm)}</td><td class="n">${f1(r.crit)}%</td></tr>`).join('')+`</tbody></table>`;
+// chain
+const chain=[['Any starter',null],['Overhand Strike','Overhand Strike'],['starter (if up)',null],['Overhand Strike (if reset)','Overhand Strike'],['next starter (if up)',null]];
+document.getElementById('chain').innerHTML=chain.map(([l,sk],i)=>
+ `${i?'<span class="arw">&rsaquo;</span>':''}<span class="sk">${sk&&C.icons[sk]?`<img src="${C.icons[sk]}" alt="">`:''}${l}</span>`).join('');
+const step=(sk,note)=>`<div class="st"><span class="sk">${sk&&C.icons[sk]?`<img src="${C.icons[sk]}" alt="">`:''}${sk||''}</span>${note?`<span class="stn">${note}</span>`:''}</div>`;
+const seq=(arr)=>arr.map((x,i)=>(i?'<span class="arw">&rsaquo;</span>':'')+step(x[0],x[1])).join('');
+document.getElementById('opener').innerHTML=seq([
+ ['Distant Blade','prepull, for the attack speed glyph'],['In Cold Blood','with brooch'],['Knockdown Strike',''],['Overhand Strike',''],
+ ['Eviscerate',''],['Overhand Strike','100% reset chance inside In Cold Blood'],['Measured Slice',''],
+ ['Fury Strike','if not glyphed, prioritise Heart Thrust'],['Overhand Strike',''],['Headlong Rush',''],['Whirlwind',''],
+ ['Overhand Strike',''],['Eviscerate',''],['Overhand Strike','still inside In Cold Blood'],['Measured Slice',''],['Heart Thrust',''],['Overhand Strike','']]);
+document.getElementById('seqBad').innerHTML=seq([['Knockdown Strike',''],['Overhand Strike',''],['Eviscerate',''],['Overhand Strike','no reset']]);
+document.getElementById('seqGood').innerHTML=seq([['Knockdown Strike',''],['Overhand Strike',''],['Heart Thrust',''],['Eviscerate',''],['Measured Slice','']]);
+
+document.getElementById('srcNote').textContent=`Percentages on this page are measured from ${C.dataset.shortlistParses} parses by the top 25 players on each of ${C.dataset.boards} endgame bosses.`;
+</script>
+</body></html>
