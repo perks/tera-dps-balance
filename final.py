@@ -16,7 +16,7 @@ for f in os.listdir("enc"):
         if k in seen: drop["dup"]+=1; continue
         seen.add(k)
         wr=p["wRolls"] or []
-        S.append(dict(uid=d["uid"],area=AREAS[m["areaId"]],boss=d["boss"],cls=p["cls"],name=p["name"],dps=p["dps"],dur=d["dur"],psize=psize,
+        S.append(dict(uid=d["uid"],area=AREAS[m["areaId"]],boss=d["boss"],cls=p["cls"],dps=p["dps"],dur=d["dur"],psize=psize,
             pid=p["pid"] or ("anon:"+str(p["name"])),anon=p["pid"] is None,ts=m["encounterUnixEpoch"],crit=p["crit"],deaths=p["deaths"],
             ilvl=p["ilvl"],wEnch=p["wEnchant"],brooch=p["brooch"],hasGear=p["hasGear"],
             enr=sum(1 for r in wr if "enraged" in r),flat=sum(1 for r in wr if r.startswith("Increases damage by 6.0%")),
@@ -109,13 +109,6 @@ for c in CLS:
         sxx=sum((i-mx)**2 for i,_ in il); sxy=sum((i-mx)*(r-my) for i,r in il)
         row["ilvlSlope"]=dict(n=len(il),perIlvl=sxy/sxx)
     out["gear"]["classByTier"][c]=row
-out["peak"]={}
-def pk(x): return dict(name=("Anonymous" if x["anon"] else x["name"]),cls=x["cls"],boss=x["boss"],dps=x["dps"],rel=x["rel"],dur=x["dur"],bossMed=bossmed[(x["area"],x["boss"])],ts=x["ts"])
-for a in areas:
-    xs=[s for s in F if s["area"]==a]
-    top=max(xs,key=lambda s:s["rel"])
-    byc={c:pk(max(cx,key=lambda s:s["rel"])) for c in CLS for cx in [[s for s in xs if s["cls"]==c]] if cx}
-    out["peak"][a]=dict(overall=pk(top),byClass=byc,areaMed=st.median([s["dps"] for s in xs]))
 out["representation"]={c:dict(samples=sum(1 for s in F if s["cls"]==c),players=len({s["pid"] for s in F if s["cls"]==c and not s["anon"]}),medDur=out["durByClass"][c]["medDur"],avgCrit=st.mean([s["crit"] for s in F if s["cls"]==c and s["crit"] is not None])) for c in CLS}
 json.dump(out,open("final.json","w",encoding="utf-8"),indent=1,ensure_ascii=False)
 json.dump(S,open("samples_final.json","w"))
