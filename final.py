@@ -56,29 +56,30 @@ def relidx(sub):
     return r
 out["relIndex"]=relidx(F)
 out["relIndexByArea"]={a:relidx([s for s in F if s["area"]==a]) for a in areas}
-# ---------- kill-time bands ----------
-# Fixed 30-second bands anchored on each boss's fastest recorded kill, capped at
-# six: everything more than 2m30s off the pace lands in one "slow" band. Band i
-# therefore means the same thing on every boss - "this far off that boss's best
-# time" - so the bands can be pooled across dungeons.
-BAND=30; NBAND=6
-def bands(durs):
-    base=int(q(durs,.10)//BAND)*BAND  # anchor on the 10th percentile, not one outlier run
-    return base,[base+BAND*i for i in range(1,NBAND)]
-def bandof(d,base): return min(NBAND-1,max(0,int((d-base)//BAND)))
+# ---------- kill-time tiers ----------
+# Kills on each boss are ranked fastest-first and cut into speed tiers: the top
+# 1%, 5%, 10%, 20% and 50% fastest, plus the bottom 50%. The top tiers are
+# cumulative (top 5% contains the top 1%), which keeps the small tiers usable on
+# thin bosses. Classes are only ever compared inside the same tier on the same
+# boss, so a fast kill is never measured against a slow one.
+TIERS=[(0.01,"Top 1% fastest"),(0.05,"Top 5%"),(0.10,"Top 10%"),(0.20,"Top 20%"),(0.50,"Top 50%"),(None,"Bottom 50%")]
+NT=len(TIERS)
 def fmt(sec):
     sec=int(round(sec))
     return f"{sec}s" if sec<60 else (f"{sec//60}m {sec%60}s" if sec%60 else f"{sec//60}m")
+def tier_slice(xs,pct):
+    xs=sorted(xs,key=lambda x:x["dur"])
+    if pct is None: return xs[len(xs)//2:]
+    return xs[:max(1,int(round(len(xs)*pct)))]
 out["killTime"]={}; acc=collections.defaultdict(lambda:[0,0])
 for a in areas:
     for b in sorted({s["boss"] for s in F if s["area"]==a}):
         xs=[s for s in F if s["area"]==a and s["boss"]==b]
         if not xs: continue
-        base,edges=bands([x["dur"] for x in xs])
-        labels=[f"under {fmt(base+BAND)}"]+[f"{fmt(base+BAND*i)}–{fmt(base+BAND*(i+1))}" for i in range(1,NBAND-1)]+[f"{fmt(base+BAND*(NBAND-1))}+"]
-        bk=[]
-        for bi in range(NBAND):
-            bx=[x for x in xs if bandof(x["dur"],base)==bi]
+        labels=[lab for _,lab in TIERS]; bk=[]; counts=[]; ranges=[]
+        for pct,lab in TIERS:
+            bx=tier_slice(xs,pct)
+            counts.append(len(bx)); ranges.append([min(x["dur"] for x in bx),max(x["dur"] for x in bx)] if bx else None)
             if not bx: bk.append({}); continue
             med=st.median([x["dps"] for x in bx]); row={}
             for c in CLS:
@@ -87,23 +88,19 @@ for a in areas:
                     row[c]=dict(n=len(cx),avg=st.mean(cx),rel=st.mean(cx)/med,max=max(cx))
                     acc[c][0]+=row[c]["rel"]*len(cx); acc[c][1]+=len(cx)
             bk.append(row)
-        out["killTime"][a+" / "+b]=dict(labels=labels,n=len(xs),base=base,
-            counts=[sum(1 for x in xs if bandof(x["dur"],base)==bi) for bi in range(NBAND)],buckets=bk)
+        out["killTime"][a+" / "+b]=dict(labels=labels,n=len(xs),counts=counts,ranges=ranges,buckets=bk)
 out["killTimeIndex"]={c:dict(rel=v[0]/v[1],n=v[1]) for c,v in acc.items()}
-BLAB=["Fastest kills","30s–1m slower","1m–1m 30s slower","1m 30s–2m slower","2m–2m 30s slower","Over 2m 30s slower"]
-gacc=[collections.defaultdict(lambda:[0,0]) for _ in range(NBAND)]
-granges=[[] for _ in range(NBAND)]
+gacc=[collections.defaultdict(lambda:[0,0]) for _ in range(NT)]
+granges=[[] for _ in range(NT)]
 for key,v in out["killTime"].items():
-    for bi,row in enumerate(v["buckets"]):
+    for ti,row in enumerate(v["buckets"]):
         for c,dd in row.items():
-            gacc[bi][c][0]+=dd["rel"]*dd["n"]; gacc[bi][c][1]+=dd["n"]
-    xs=[s2 for s2 in F if s2["area"]+" / "+s2["boss"]==key]
-    for bi in range(NBAND):
-        bx=[x["dur"] for x in xs if bandof(x["dur"],v["base"])==bi]
-        if bx: granges[bi].append(dict(boss=key,lo=min(bx),hi=max(bx),n=len(bx)))
-out["killTimeGlobal"]=[dict(label=BLAB[bi],
-    classes={c:dict(n=w[1],rel=w[0]/w[1]) for c,w in gacc[bi].items() if w[1]>=5},
-    bosses=sorted(granges[bi],key=lambda r:-r["n"])) for bi in range(NBAND)]
+            gacc[ti][c][0]+=dd["rel"]*dd["n"]; gacc[ti][c][1]+=dd["n"]
+        if v["ranges"][ti]:
+            granges[ti].append(dict(boss=key,lo=v["ranges"][ti][0],hi=v["ranges"][ti][1],n=v["counts"][ti]))
+out["killTimeGlobal"]=[dict(label=TIERS[ti][1],
+    classes={c:dict(n=w[1],rel=w[0]/w[1]) for c,w in gacc[ti].items() if w[1]>=5},
+    bosses=sorted(granges[ti],key=lambda r:-r["n"])) for ti in range(NT)]
 out["durByClass"]={c:dict(medDur=st.median([s["dur"] for s in F if s["cls"]==c])) for c in CLS}
 G=[s for s in F if s["hasGear"] and s["wEnch"] is not None]
 TIERS=["<=+5 weapon","+6 weapon","+7 weapon","+8/+9 weapon"]
