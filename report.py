@@ -67,12 +67,12 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 <div class="nav"><a href="../">Home</a><a href="../tera-dps-balance/" aria-current="page">DPS classes</a><a href="../slayer-build/">Slayer build data</a><a href="../slayer-guide/">Slayer guide</a></div>
 <div class="eyebrow">TERA Europe Classic+ · public leaderboard API · __D0__ – __D1__</div>
 <h1>Classic+ DPS Balance</h1>
-<p class="sub">Every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors are counted only when the meter flagged them as DPS, not tank. Healers, tanks, and entries under 50k DPS (died early / broken upload) are excluded.</p>
+<p class="sub">Every DPS-role player on the leaderboard for Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing, taken from 5-man kills. The board keeps each player's <b>best parse per boss</b>, so nobody is weighted more heavily for running the same boss repeatedly. Warriors count only where the game flagged them as DPS rather than tank; entries under 50k DPS are excluded.</p>
 <div class="tiles" id="tiles"></div>
 
 <section>
 <h2>Where each class stands</h2>
-<p class="lead">Each player's DPS is divided by the <b>median DPS of that exact boss</b> (all classes pooled), so a Savage kill and a Dragon's Landing kill are on one scale. <b>1.00 = boss median.</b> Three lenses: raw, kill-time-matched, and same-gear.</p>
+<p class="lead">Every figure shows <b>how far above or below the typical DPS player</b> a class sits on the same boss, so a Savage kill and a Dragon's Landing kill are on one scale. <b>+10% means 10% more damage than the median player on that boss.</b> Three lenses: raw, kill-time-matched, and same-gear.</p>
 <div class="panel">
 <div class="tabs" role="tablist" id="lensTabs"></div>
 <div id="lensChart"></div>
@@ -82,7 +82,7 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 
 <section>
 <h2>Raw DPS by dungeon</h2>
-<p class="lead">Median / 90th percentile / best recorded DPS per class, 5-man kills only. <span class="n">n = samples · uniq = distinct named players</span></p>
+<p class="lead">Median / 90th percentile / best recorded DPS per class. <span class="n">n = player bests · uniq = distinct named players</span></p>
 <div class="panel">
 <div class="tabs" role="tablist" id="areaTabs"></div>
 <div class="tscroll" id="areaTable"></div>
@@ -91,12 +91,18 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 
 <section>
 <h2>Kill-time matched comparison</h2>
-<p class="lead">Burst classes look better on fast kills; sustained classes on long ones. Each boss's kills are split into four duration quartiles, and each class's average DPS is compared to the median of <b>only that bucket</b>. Cells show class avg ÷ bucket median.</p>
+<p class="lead">Burst classes look better on fast kills, sustained classes on long ones. Every boss's kills are split into four speed groups, and each class is compared only against the other classes in <b>the same group on the same boss</b>. All five dungeons are pooled here.</p>
 <div class="panel">
+<div class="tabs" role="tablist" id="ktTabs"></div>
+<div id="ktChart"></div>
+<p class="note" id="ktNote"></p>
+</div>
+<details><summary>What counts as fast on each boss</summary><div class="inner tscroll" id="ktRanges"></div></details>
+<details><summary>Per-boss breakdown</summary><div class="inner">
 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><label for="bossSel" class="hdr">Boss</label><select id="bossSel"></select><span class="n" id="bossN"></span></div>
 <div class="tscroll" id="ktTable"></div>
-<p class="legend">Green ≥ 1.05 · grey 0.95–1.05 · red ≤ 0.95 · blank = fewer than 3 samples. Hover a cell for n and max.</p>
-</div>
+<p class="legend">Cells show each class's average against the middle of that speed group. Blank = fewer than 3 kills.</p>
+</div></details>
 </section>
 
 <section>
@@ -116,11 +122,12 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 <h2>Reading guide</h2>
 <div class="panel">
 <ul class="tight">
-<li><b>Relative index</b> is the fairest single number: it removes boss HP/difficulty differences. A class at 1.10 does 10% more than the typical DPS on the same boss.</li>
-<li><b>Player-best median</b> (in the raw lens table) counts each player once at their best run, so one player spamming 100 kills doesn't dominate a class.</li>
-<li><b>Kill-time index</b> is the same comparison inside duration buckets — it neutralises the "burst class only gets fast kills" and "sustained class only in slow parties" biases.</li>
-<li><b>Same-gear index</b> uses only players in the most common kit (+6 weapon, Chrono Brooch, +6 armor) — smaller sample, but gear is held constant.</li>
+<li><b>Vs typical</b> is the fairest single number: it removes boss HP and difficulty differences. A class at +10% does 10% more damage than the median DPS player on the same boss.</li>
+<li><b>One entry per player per boss.</b> The leaderboard stores each player's best parse on each boss, so a player who runs a boss fifty times still counts once and cannot skew a class.</li>
+<li><b>Kill-time matched</b> is the same comparison inside speed groups — it neutralises the "burst class only gets fast kills" and "sustained class only in slow parties" biases.</li>
+<li><b>Same gear</b> uses only players in the most common kit (+6 weapon, Chrono Brooch, +6 armor) — smaller sample, but gear is held constant.</li>
 <li>Anonymous players are included in DPS stats but can't be de-duplicated; distinct-player counts are lower bounds.</li>
+<li>Gear sections cover the subset of entries whose equipment snapshot is cached locally, shown as coverage in that section.</li>
 </ul>
 </div>
 </section>
@@ -132,21 +139,24 @@ const AREAS=["Dragon's Landing","TS Hard","TS Savage","SS Hard","SS Savage"];
 const fmt=n=>n==null?'–':Math.round(n).toLocaleString('en-US');
 const fk=n=>n==null?'–':(n/1000).toFixed(0)+'k';
 const f2=n=>n==null?'–':n.toFixed(2);
-const pill=v=>v==null?'':`<span class="pill ${v>=1.05?'pos':v<=0.95?'neg':'mid'}">${f2(v)}</span>`;
+const rel=v=>v==null?'':(v>=1?'+':'\u2212')+Math.round(Math.abs(v-1)*100)+'%';
+const pill=v=>v==null?'':`<span class="pill ${v>=1.05?'pos':v<=0.95?'neg':'mid'}" title="${f2(v)}\u00d7 the typical DPS player on the same boss">${rel(v)}</span>`;
+const dur=sec=>sec==null?'-':(sec<60?Math.round(sec)+'s':Math.floor(sec/60)+'m'+(Math.round(sec%60)?' '+Math.round(sec%60)+'s':''));
+const durLabel=l=>String(l).replace(/(\d+)s/g,(m,d)=>dur(+d));
 // tiles
 const ds=D.dataset;
-document.getElementById('tiles').innerHTML=[[ds.encounters,'kills'],[ds.five,'DPS samples (5-man)'],[ds.players,'named players'],[ds.anon,'anonymous samples']].map(([v,l])=>`<div class="tile"><b>${fmt(v)}</b><span>${l}</span></div>`).join('');
+document.getElementById('tiles').innerHTML=[[ds.five,'player bests'],[ds.players,'named players'],[ds.encounters,'kills covered'],[Object.keys(D.killTime).length,'bosses']].map(([v,l])=>`<div class="tile"><b>${fmt(v)}</b><span>${l}</span></div>`).join('');
 // lens chart
 function barChart(el,rows,key,nkey,note){
   const vals=rows.map(r=>r[1][key]); const lo=Math.min(0.8,...vals), hi=Math.max(1.2,...vals);
   const pct=v=>((v-lo)/(hi-lo)*100);
-  el.innerHTML=`<div class="bars"><div class="hdr">class</div><div></div><div class="hdr" style="text-align:right">index</div><div class="hdr" style="text-align:right">${nkey}</div>`+
+  el.innerHTML=`<div class="bars"><div class="hdr">class</div><div></div><div class="hdr" style="text-align:right">vs typical</div><div class="hdr" style="text-align:right">${nkey}</div>`+
     rows.sort((a,b)=>b[1][key]-a[1][key]).map(([c,r])=>{const v=r[key];const z=pct(1);const p=pct(v);
       const left=Math.min(z,p),w=Math.abs(p-z);
-      return `<div class="lab">${c}</div><div class="track"><div class="zero" style="left:${z}%"></div><div class="fill ${v>=1.03?'pos':v<=0.97?'neg':''}" style="left:${left}%;width:${w}%"></div></div><div class="v">${f2(v)}</div><div class="nn">${r.n} <span style="opacity:.7">/ ${r.players||''}</span></div>`}).join('')+`</div>`;
+      return `<div class="lab">${c}</div><div class="track"><div class="zero" style="left:${z}%"></div><div class="fill ${v>=1.03?'pos':v<=0.97?'neg':''}" style="left:${left}%;width:${w}%"></div></div><div class="v" title="${f2(v)}\u00d7">${rel(v)}</div><div class="nn">${r.n}${r.players?' <span style="opacity:.7">/ '+r.players+'</span>':''}</div>`}).join('')+`</div>`;
 }
 const lenses=[
- {id:'raw',label:'Raw (all kills)',rows:Object.entries(D.relIndex),key:'avg',nkey:'n / uniq',note:`Average of per-kill index. Player-best median (each player counted once): ${Object.entries(D.relIndex).sort((a,b)=>b[1].playerBestMed-a[1].playerBestMed).map(([c,r])=>c+' '+f2(r.playerBestMed)).join(' · ')}.`},
+ {id:'raw',label:'All players',rows:Object.entries(D.relIndex),key:'avg',nkey:'n / uniq',note:'One entry per player per boss, their best recorded parse. n = entries, uniq = distinct named players.'},
  {id:'kt',label:'Kill-time matched',rows:Object.entries(D.killTimeIndex).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:D.relIndex[c].players}]),key:'avg',nkey:'n / uniq',note:'Class average ÷ median of the same duration quartile on the same boss, weighted by sample count across all 15 bosses.'},
  {id:'gear',label:'Same gear',rows:Object.entries(D.gear.stdBucket.classes),key:'avg',nkey:'n / uniq',note:`Only players wearing ${D.gear.stdBucket.desc} (${D.gear.stdBucket.n} samples).`},
  {id:'top',label:'Top 10% of players',rows:Object.entries(D.relIndex).map(([c,r])=>[c,{avg:r.top10,n:r.n,players:r.players}]),key:'avg',nkey:'n / uniq',note:'Average index of the best 10% of samples per class — the ceiling, not the typical player.'}
@@ -157,24 +167,37 @@ tabs.children[0].click();
 // area tables
 const at=document.getElementById('areaTabs');
 function areaTable(a){const rows=Object.entries(D.byArea[a]).sort((x,y)=>y[1].med-x[1].med);
- document.getElementById('areaTable').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>uniq</th><th>min</th><th>p25</th><th>median</th><th>avg</th><th>p75</th><th>p90</th><th>max</th><th>index</th></tr></thead><tbody>`+
+ document.getElementById('areaTable').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>uniq</th><th>min</th><th>p25</th><th>median</th><th>avg</th><th>p75</th><th>p90</th><th>max</th><th>vs typical</th></tr></thead><tbody>`+
  rows.map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td class="n">${r.players}</td><td class="n">${fk(r.min)}</td><td class="n">${fk(r.p25)}</td><td><b>${fk(r.med)}</b></td><td>${fk(r.avg)}</td><td class="n">${fk(r.p75)}</td><td>${fk(r.p90)}</td><td>${fk(r.max)}</td><td>${pill(D.relIndexByArea[a][c]&&D.relIndexByArea[a][c].avg)}</td></tr>`).join('')+`</tbody></table>`}
 AREAS.forEach((a,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=a;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...at.children].forEach(x=>x.setAttribute('aria-selected',x===b));areaTable(a)};at.appendChild(b)});
 at.children[0].click();
-// kill time
+// kill time: pooled across dungeons, one tab per speed group
+const ktTabs=document.getElementById('ktTabs');
+function ktBucket(i){const B=D.killTimeGlobal[i];
+ const rows=Object.entries(B.classes).sort((a,b)=>b[1].rel-a[1].rel);
+ barChart(document.getElementById('ktChart'),rows.map(([c,v])=>[c,{avg:v.rel,n:v.n,players:''}]),'avg','kills');
+ const tot=rows.reduce((s,r)=>s+r[1].n,0);
+ document.getElementById('ktNote').textContent=`${tot.toLocaleString()} parses in this speed group across ${B.bosses.length} bosses. Each class is measured against the other classes in the same group on the same boss, so a fast kill is never compared with a slow one.`;
+ document.getElementById('ktRanges').innerHTML=`<table><thead><tr><th>boss</th><th>kills</th><th>fight length in this group</th></tr></thead><tbody>`+
+  B.bosses.map(r=>`<tr><td>${r.boss.replace('Nightmare ','N. ')}</td><td class="n">${r.n}</td><td>${dur(r.lo)} – ${dur(r.hi)}</td></tr>`).join('')+`</tbody></table>`;
+}
+D.killTimeGlobal.forEach((B,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=B.label;b.setAttribute('aria-selected',i===0);
+ b.onclick=()=>{[...ktTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));ktBucket(i)};ktTabs.appendChild(b)});
+ktBucket(0);
+// per-boss detail
 const sel=document.getElementById('bossSel');
 const bossKeys=Object.keys(D.killTime).sort((a,b)=>D.killTime[b].n-D.killTime[a].n);
-bossKeys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${k} (${D.killTime[k].n})`;sel.appendChild(o)});
-function kt(k){const K=D.killTime[k];document.getElementById('bossN').textContent=`${K.n} samples · quartile cuts by fight length`;
+bossKeys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${k.replace('Nightmare ','N. ')} (${D.killTime[k].n})`;sel.appendChild(o)});
+function kt(k){const K=D.killTime[k];document.getElementById('bossN').textContent=`${K.n} parses`;
  const present=CLS.filter(c=>K.buckets.some(b=>b[c]));
- document.getElementById('ktTable').innerHTML=`<table class="heat"><thead><tr><th>class</th>${K.labels.map((l,i)=>`<th>${['fast','','','slow'][i]||''} ${l}</th>`).join('')}<th>all-bucket avg</th></tr></thead><tbody>`+
+ document.getElementById('ktTable').innerHTML=`<table class="heat"><thead><tr><th>class</th>${K.labels.map((l,i)=>`<th>${['fastest','','','slowest'][i]||''} ${durLabel(l)}</th>`).join('')}<th>all groups</th></tr></thead><tbody>`+
  present.map(c=>{const vals=K.buckets.map(b=>b[c]);const have=vals.filter(Boolean);const avg=have.length?have.reduce((s,v)=>s+v.rel*v.n,0)/have.reduce((s,v)=>s+v.n,0):null;
-  return `<tr><td><b>${c}</b></td>${vals.map(v=>`<td title="${v?`n=${v.n} · avg ${fk(v.avg)} · max ${fk(v.max)}`:''}">${v?pill(v.rel)+` <span class="n">${v.n}</span>`:''}</td>`).join('')}<td>${pill(avg)}</td></tr>`}).join('')+`</tbody></table>`}
+  return `<tr><td><b>${c}</b></td>${vals.map(v=>`<td title="${v?`${v.n} kills · avg ${fk(v.avg)} · best ${fk(v.max)}`:''}">${v?pill(v.rel)+` <span class="n">${v.n}</span>`:''}</td>`).join('')}<td>${pill(avg)}</td></tr>`}).join('')+`</tbody></table>`}
 sel.onchange=()=>kt(sel.value);kt(bossKeys[0]);
 // gear
 document.getElementById('gearCov').textContent=`${D.gear.coverage.withGear.toLocaleString()} of ${D.gear.coverage.of.toLocaleString()} (${Math.round(100*D.gear.coverage.withGear/D.gear.coverage.of)}%)`;
-document.getElementById('gearEffect').innerHTML=`<table><thead><tr><th>weapon</th><th>n</th><th>median index</th></tr></thead><tbody>`+Object.entries(D.gear.tierEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+
- `</tbody></table><table style="margin-top:10px"><thead><tr><th>brooch (+6 weapon only)</th><th>n</th><th>median index</th></tr></thead><tbody>`+Object.entries(D.gear.broochEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+`</tbody></table>`;
+document.getElementById('gearEffect').innerHTML=`<table><thead><tr><th>weapon</th><th>n</th><th>vs typical</th></tr></thead><tbody>`+Object.entries(D.gear.tierEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+
+ `</tbody></table><table style="margin-top:10px"><thead><tr><th>brooch (+6 weapon only)</th><th>n</th><th>vs typical</th></tr></thead><tbody>`+Object.entries(D.gear.broochEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+`</tbody></table>`;
 document.getElementById('gearProfile').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>avg ilvl</th><th>avg wpn</th><th>+7 or better</th><th>chrono</th></tr></thead><tbody>`+Object.entries(D.gear.classGearProfile).sort((a,b)=>b[1].pct7plus-a[1].pct7plus).map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td>${r.avgIlvl?r.avgIlvl.toFixed(1):'–'}</td><td>+${r.avgWEnch.toFixed(2)}</td><td>${Math.round(r.pct7plus*100)}%</td><td>${Math.round(r.pctChrono*100)}%</td></tr>`).join('')+`</tbody></table>`;
 const TIERS=Object.keys(D.gear.tierEffect);
 document.getElementById('classTier').innerHTML=`<table><thead><tr><th>class</th>${TIERS.map(t=>`<th>${t.replace(' weapon','')}</th>`).join('')}<th>+6 → +7</th><th>+6 → +8/9</th><th>% per ilvl</th></tr></thead><tbody>`+
