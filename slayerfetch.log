@@ -1,0 +1,13 @@
+2303 to fetch
+  79/2303  fetched=77 missing=2 failed=0  15s  eta 7m
+  129/2303  fetched=123 missing=6 failed=0  30s  eta 8m
+  219/2303  fetched=208 missing=11 failed=0  45s  eta 7m
+  327/2303  fetched=316 missing=11 failed=0  60s  eta 6m
+  491/2303  fetched=480 missing=11 failed=0  75s  eta 5m
+  807/2303  fetched=796 missing=11 failed=0  90s  eta 3m
+  1074/2303  fetched=1062 missing=12 failed=0  105s  eta 2m
+  1364/2303  fetched=1352 missing=12 failed=0  120s  eta 1m
+  1623/2303  fetched=1611 missing=12 failed=0  135s  eta 1m
+  1907/2303  fetched=1895 missing=12 failed=0  150s  eta 1m
+  2271/2303  fetched=2259 missing=12 failed=0  165s  eta 0m
+done in 168s | fetched 2291 | missing 12 | failed 0 | cache 2664

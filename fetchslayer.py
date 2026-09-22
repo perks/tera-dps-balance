@@ -1,8 +1,14 @@
-import json,urllib.request,os,time
+import json,urllib.request,urllib.error,os,time,threading
 from concurrent.futures import ThreadPoolExecutor
 BASE="https://tera-europe-classic.com/api/leaderboard/encounter/"
 uids=json.load(open("slayer_uids.json"))
 os.makedirs("slayer",exist_ok=True)
+GONE="slayer_gone.json"
+gone=set(json.load(open(GONE))) if os.path.exists(GONE) else set()
+have={f[:-5] for f in os.listdir("slayer")}
+uids=[u for u in uids if u not in have and u not in gone]
+lock=threading.Lock(); stat={"ok":0,"gone":0,"fail":0}
+print(f"{len(uids)} to fetch",flush=True)
 def get(url):
     req=urllib.request.Request(url,headers={"User-Agent":"curl/8.0"})
     with urllib.request.urlopen(req,timeout=120) as r: return json.load(r)
@@ -41,10 +47,27 @@ def one(uid):
             json.dump(dict(uid=uid,area=d["areaId"],boss=d["bossName"],dur=d["fightDuration"],partyDps=d.get("partyDps"),
                 party=[dict(cls=p.get("class"),role=p.get("role"),dps=p.get("dps")) for p in d["players"]],
                 slayers=recs),open(out,"w"))
+            with lock: stat["ok"]+=1
             return
+        except urllib.error.HTTPError as e:
+            if e.code==404:
+                with lock: gone.add(uid); stat["gone"]+=1
+                return
+            time.sleep(2)
         except Exception as e:
             time.sleep(2)
-    print("FAIL",uid)
-t=time.time()
-with ThreadPoolExecutor(6) as ex: list(ex.map(one,uids))
-print("done",len(os.listdir("slayer")),"in",round(time.time()-t),"s")
+    with lock: stat["fail"]+=1
+t=time.time(); done=threading.Event()
+def progress():
+    while not done.wait(15):
+        with lock:
+            n=stat["ok"]+stat["gone"]+stat["fail"]; json.dump(sorted(gone),open(GONE,"w"))
+        rate=n/max(1e-9,time.time()-t)
+        print(f"  {n}/{len(uids)}  fetched={stat['ok']} missing={stat['gone']} failed={stat['fail']}"
+              f"  {time.time()-t:.0f}s  eta {(len(uids)-n)/rate/60 if rate else 0:.0f}m",flush=True)
+threading.Thread(target=progress,daemon=True).start()
+try:
+    with ThreadPoolExecutor(12) as ex: list(ex.map(one,uids))
+finally:
+    done.set(); json.dump(sorted(gone),open(GONE,"w"))
+print(f"done in {time.time()-t:.0f}s | fetched {stat['ok']} | missing {stat['gone']} | failed {stat['fail']} | cache {len(os.listdir('slayer'))}",flush=True)
