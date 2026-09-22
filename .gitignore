@@ -5,12 +5,14 @@ slayer/
 !glyph_catalogue.json
 !slayer_skills.json
 !slayer_skill_icons.json
+!enc_gone.json
 report.html
 tankreport.html
 slayerreport.html
 guide.html
 preview.html
 chk.mjs
+fetch.log
 tanks.html
 tank.py
 tank2.py

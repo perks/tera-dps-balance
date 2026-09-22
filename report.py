@@ -67,7 +67,7 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 <div class="nav"><a href="../">Home</a><a href="../tera-dps-balance/" aria-current="page">DPS classes</a><a href="../slayer-build/">Slayer build data</a><a href="../slayer-guide/">Slayer guide</a></div>
 <div class="eyebrow">TERA Europe Classic+ · public leaderboard API · __D0__ – __D1__</div>
 <h1>Classic+ DPS Balance</h1>
-<p class="sub">Every DPS-role player on the leaderboard for Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing, taken from 5-man kills. The board keeps each player's <b>best parse per boss</b>, so nobody is weighted more heavily for running the same boss repeatedly. Warriors count only where the game flagged them as DPS rather than tank; entries under 50k DPS are excluded.</p>
+<p class="sub">Every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded.</p>
 <div class="tiles" id="tiles"></div>
 
 <section>
@@ -82,7 +82,7 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 
 <section>
 <h2>Raw DPS by dungeon</h2>
-<p class="lead">Median / 90th percentile / best recorded DPS per class. <span class="n">n = player bests · uniq = distinct named players</span></p>
+<p class="lead">Median / 90th percentile / best recorded DPS per class. <span class="n">n = parses · uniq = distinct named players</span></p>
 <div class="panel">
 <div class="tabs" role="tablist" id="areaTabs"></div>
 <div class="tscroll" id="areaTable"></div>
@@ -123,11 +123,11 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 <div class="panel">
 <ul class="tight">
 <li><b>Vs typical</b> is the fairest single number: it removes boss HP and difficulty differences. A class at +10% does 10% more damage than the median DPS player on the same boss.</li>
-<li><b>One entry per player per boss.</b> The leaderboard stores each player's best parse on each boss, so a player who runs a boss fifty times still counts once and cannot skew a class.</li>
+<li><b>Player-best</b> figures count each player once at their best parse, so someone who runs a boss fifty times cannot skew a class. The headline lens uses every parse.</li>
 <li><b>Kill-time matched</b> is the same comparison inside speed groups — it neutralises the "burst class only gets fast kills" and "sustained class only in slow parties" biases.</li>
 <li><b>Same gear</b> uses only players in the most common kit (+6 weapon, Chrono Brooch, +6 armor) — smaller sample, but gear is held constant.</li>
 <li>Anonymous players are included in DPS stats but can't be de-duplicated; distinct-player counts are lower bounds.</li>
-<li>Gear sections cover the subset of entries whose equipment snapshot is cached locally, shown as coverage in that section.</li>
+<li>Gear sections cover parses with a recorded equipment snapshot; coverage is shown in that section.</li>
 </ul>
 </div>
 </section>
@@ -145,7 +145,7 @@ const dur=sec=>sec==null?'-':(sec<60?Math.round(sec)+'s':Math.floor(sec/60)+'m'+
 const durLabel=l=>String(l).replace(/(\d+)\s*-\s*(\d+)s/g,(m,a,b)=>dur(+a)+'–'+dur(+b)).replace(/(?<![\d–])(\d+)s/g,(m,d)=>dur(+d));
 // tiles
 const ds=D.dataset;
-document.getElementById('tiles').innerHTML=[[ds.five,'player bests'],[ds.players,'named players'],[ds.encounters,'kills covered'],[Object.keys(D.killTime).length,'bosses']].map(([v,l])=>`<div class="tile"><b>${fmt(v)}</b><span>${l}</span></div>`).join('');
+document.getElementById('tiles').innerHTML=[[ds.encounters,'kills'],[ds.five,'DPS parses'],[ds.players,'named players'],[Object.keys(D.killTime).length,'bosses']].map(([v,l])=>`<div class="tile"><b>${fmt(v)}</b><span>${l}</span></div>`).join('');
 // lens chart
 function barChart(el,rows,key,nkey,note){
   const vals=rows.map(r=>r[1][key]); const lo=Math.min(0.8,...vals), hi=Math.max(1.2,...vals);
@@ -156,7 +156,7 @@ function barChart(el,rows,key,nkey,note){
       return `<div class="lab">${c}</div><div class="track"><div class="zero" style="left:${z}%"></div><div class="fill ${v>=1.03?'pos':v<=0.97?'neg':''}" style="left:${left}%;width:${w}%"></div></div><div class="v" title="${f2(v)}\u00d7">${rel(v)}</div><div class="nn">${r.n}${r.players?' <span style="opacity:.7">/ '+r.players+'</span>':''}</div>`}).join('')+`</div>`;
 }
 const lenses=[
- {id:'raw',label:'All players',rows:Object.entries(D.relIndex),key:'avg',nkey:'n / uniq',note:'One entry per player per boss, their best recorded parse. n = entries, uniq = distinct named players.'},
+ {id:'raw',label:'All parses',rows:Object.entries(D.relIndex),key:'avg',nkey:'n / uniq',note:`Average across every parse. Counting each player once at their best parse instead: ${Object.entries(D.relIndex).sort((a,b)=>b[1].playerBestMed-a[1].playerBestMed).map(([c,r])=>c+' '+(r.playerBestMed>=1?'+':'−')+Math.round(Math.abs(r.playerBestMed-1)*100)+'%').join(' · ')}.`},
  {id:'kt',label:'Kill-time matched',rows:Object.entries(D.killTimeIndex).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:D.relIndex[c].players}]),key:'avg',nkey:'n / uniq',note:'Class average ÷ median of the same duration quartile on the same boss, weighted by sample count across all 15 bosses.'},
  {id:'gear',label:'Same gear',rows:Object.entries(D.gear.stdBucket.classes),key:'avg',nkey:'n / uniq',note:`Only players wearing ${D.gear.stdBucket.desc} (${D.gear.stdBucket.n} samples).`},
  {id:'top',label:'Top 10% of players',rows:Object.entries(D.relIndex).map(([c,r])=>[c,{avg:r.top10,n:r.n,players:r.players}]),key:'avg',nkey:'n / uniq',note:'Average index of the best 10% of samples per class — the ceiling, not the typical player.'}
