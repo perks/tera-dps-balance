@@ -3,44 +3,28 @@ rows=json.load(open("rows.json"))
 meta={r["encounterUid"]:r for r in rows}
 AREAS={556:"TS Hard",456:"TS Savage",568:"SS Hard",468:"SS Savage",507:"Dragon's Landing"}
 CLS=['Archer','Berserker','Gunner','Ninja','Reaper','Slayer','Sorcerer','Valkyrie','Warrior']
-# Samples come from rows.json: the solo DPS leaderboard rows (roleKey=dps, so
-# every row is one DPS-role player's parse in one kill). Gear is joined in from
-# whatever encounter details happen to be cached in enc/; that cache does not
-# need to be complete and its coverage is reported on the page.
-gear={}
-if os.path.isdir("enc"):
-    for f in os.listdir("enc"):
-        try: d=json.load(open("enc/"+f))
-        except Exception: continue
-        for p in d.get("players") or []:
-            if p.get("cls") in CLS:
-                gear[(d["uid"],p.get("name"),p["cls"])]=p
-S=[]; drop=collections.Counter(); best={}
-for r in rows:
-    if r.get("playerClass") not in CLS: continue
-    if (r.get("playerDps") or 0)<50000: drop["dps<50k"]+=1; continue
-    uid=r.get("encounterUid")
-    if not uid: drop["no encounter id"]+=1; continue
-    pid=r.get("playerId") or ("anon:"+str(r.get("playerName"))+":"+uid)
-    k=(uid,pid)
-    if k in best:
-        drop["duplicate row"]+=1
-        if r["playerDps"]<=best[k]["playerDps"]: continue
-    best[k]=r
-for (uid,pid),r in best.items():
-    g=gear.get((uid,r.get("playerName"),r["playerClass"])) or {}
-    ae=g.get("armorEnchant")
-    wr=g.get("wRolls") or []
-    S.append(dict(uid=uid,area=AREAS[r["areaId"]],boss=r.get("bossName"),cls=r["playerClass"],dps=r["playerDps"],
-        dur=r.get("fightDuration") or 0,psize=len(r.get("players") or []),
-        pid=pid,anon=not r.get("playerId"),ts=r.get("encounterUnixEpoch"),
-        crit=g.get("crit"),deaths=r.get("playerDeaths"),
-        ilvl=g.get("ilvl"),wEnch=g.get("wEnchant"),brooch=g.get("brooch"),hasGear=bool(g.get("hasGear")),
-        enr=sum(1 for x in wr if "enraged" in x),flat=sum(1 for x in wr if x.startswith("Increases damage by 6.0%")),
-        behind=sum(1 for x in wr if "from behind" in x),
-        armor=tuple(ae.values()) if isinstance(ae,dict) else tuple(ae or ())))
-drop["gear cached"]=sum(1 for s in S if s["hasGear"])
-print("samples",len(S),"drop",dict(drop))
+S=[]; drop=collections.Counter()
+skipped=0
+for f in os.listdir("enc"):
+    d=json.load(open("enc/"+f))
+    m=meta.get(d["uid"])
+    if m is None: skipped+=1; continue
+    psize=len(d["players"])
+    seen=set()
+    for p in d["players"]:
+        if p["cls"] not in CLS: continue
+        if p["role"]!="dps": drop["role="+str(p["role"])]+=1; continue
+        if (p["dps"] or 0)<50000: drop["dps<50k"]+=1; continue
+        k=(p["name"],p["cls"])
+        if k in seen: drop["dup"]+=1; continue
+        seen.add(k)
+        wr=p["wRolls"] or []
+        S.append(dict(uid=d["uid"],area=AREAS[m["areaId"]],boss=d["boss"],cls=p["cls"],dps=p["dps"],dur=d["dur"],psize=psize,
+            pid=p["pid"] or ("anon:"+str(p["name"])),anon=p["pid"] is None,ts=m["encounterUnixEpoch"],crit=p["crit"],deaths=p["deaths"],
+            ilvl=p["ilvl"],wEnch=p["wEnchant"],brooch=p["brooch"],hasGear=p["hasGear"],
+            enr=sum(1 for r in wr if "enraged" in r),flat=sum(1 for r in wr if r.startswith("Increases damage by 6.0%")),
+            behind=sum(1 for r in wr if "from behind" in r),armor=tuple(p["armorEnchant"].values())))
+print("samples",len(S),"drop",dict(drop),"| cached encounters no longer on the board:",skipped)
 def q(xs,p):
     xs=sorted(xs); k=(len(xs)-1)*p; f=int(k); c=min(f+1,len(xs)-1); return xs[f]+(xs[c]-xs[f])*(k-f)
 def stats(xs,pids): return dict(n=len(xs),players=len(set(pids)),min=min(xs),p25=q(xs,.25),med=st.median(xs),avg=st.mean(xs),p75=q(xs,.75),p90=q(xs,.9),max=max(xs))
@@ -87,14 +71,13 @@ for a in areas:
             bk.append(row)
         out["killTime"][a+" / "+b]=dict(labels=labels,n=len(xs),buckets=bk)
 out["killTimeIndex"]={c:dict(rel=v[0]/v[1],n=v[1]) for c,v in acc.items()}
-# all dungeons pooled, one entry per kill-time bucket
 BLAB=["Fastest 25% of kills","Faster half","Slower half","Slowest 25% of kills"]
 gacc=[collections.defaultdict(lambda:[0,0]) for _ in range(4)]
 granges=[[] for _ in range(4)]
 for key,v in out["killTime"].items():
     for bi,row in enumerate(v["buckets"]):
-        for c,d in row.items():
-            gacc[bi][c][0]+=d["rel"]*d["n"]; gacc[bi][c][1]+=d["n"]
+        for c,dd in row.items():
+            gacc[bi][c][0]+=dd["rel"]*dd["n"]; gacc[bi][c][1]+=dd["n"]
     xs=[s2 for s2 in F if s2["area"]+" / "+s2["boss"]==key]
     cuts=[q([x["dur"] for x in xs],pp) for pp in (.25,.5,.75)] if xs else [0,0,0]
     for bi in range(4):
@@ -144,7 +127,7 @@ for c in CLS:
         sxx=sum((i-mx)**2 for i,_ in il); sxy=sum((i-mx)*(r-my) for i,r in il)
         row["ilvlSlope"]=dict(n=len(il),perIlvl=sxy/sxx)
     out["gear"]["classByTier"][c]=row
-out["representation"]={c:dict(samples=sum(1 for s in F if s["cls"]==c),players=len({s["pid"] for s in F if s["cls"]==c and not s["anon"]}),medDur=out["durByClass"][c]["medDur"],avgCrit=(st.mean(x) if (x:=[s["crit"] for s in F if s["cls"]==c and s["crit"] is not None]) else None)) for c in CLS}
+out["representation"]={c:dict(samples=sum(1 for s in F if s["cls"]==c),players=len({s["pid"] for s in F if s["cls"]==c and not s["anon"]}),medDur=out["durByClass"][c]["medDur"],avgCrit=st.mean([s["crit"] for s in F if s["cls"]==c and s["crit"] is not None])) for c in CLS}
 json.dump(out,open("final.json","w",encoding="utf-8"),indent=1,ensure_ascii=False)
 json.dump(S,open("samples_final.json","w"))
 print(json.dumps(out["dataset"]))

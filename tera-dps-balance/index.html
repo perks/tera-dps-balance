@@ -137,7 +137,7 @@ const f2=n=>n==null?'–':n.toFixed(2);
 const rel=v=>v==null?'':(v>=1?'+':'\u2212')+Math.round(Math.abs(v-1)*100)+'%';
 const pill=v=>v==null?'':`<span class="pill ${v>=1.05?'pos':v<=0.95?'neg':'mid'}" title="${f2(v)}\u00d7 the typical DPS player on the same boss">${rel(v)}</span>`;
 const dur=sec=>sec==null?'-':(sec<60?Math.round(sec)+'s':Math.floor(sec/60)+'m'+(Math.round(sec%60)?' '+Math.round(sec%60)+'s':''));
-const durLabel=l=>String(l).replace(/(\d+)s/g,(m,d)=>dur(+d));
+const durLabel=l=>String(l).replace(/(\d+)\s*-\s*(\d+)s/g,(m,a,b)=>dur(+a)+'–'+dur(+b)).replace(/(?<![\d–])(\d+)s/g,(m,d)=>dur(+d));
 // tiles
 const ds=D.dataset;
 document.getElementById('tiles').innerHTML=[[ds.five,'player bests'],[ds.players,'named players'],[ds.encounters,'kills covered'],[Object.keys(D.killTime).length,'bosses']].map(([v,l])=>`<div class="tile"><b>${fmt(v)}</b><span>${l}</span></div>`).join('');
