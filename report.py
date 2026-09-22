@@ -91,7 +91,7 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 
 <section>
 <h2>Kill-time matched comparison</h2>
-<p class="lead">Burst classes look better on fast kills, sustained classes on long ones. Every boss's kills are ranked fastest first and cut into speed tiers. Each class is compared only against the other classes in <b>the same tier on the same boss</b>, so a fast kill is never measured against a slow one. Tiers are cumulative — the top 5% contains the top 1% — which keeps the small tiers usable. Every class is shown with its parse count, because the fastest tiers are thin. All five dungeons are pooled here.</p>
+<p class="lead">Burst classes look better on fast kills, sustained classes on long ones. Every boss's kills are ranked fastest first and cut into speed tiers. Each class is compared only against the other classes in <b>the same tier on the same boss</b>, so a fast kill is never measured against a slow one. Tiers are cumulative — the top 10% contains the top 5% — which keeps the small tiers usable. Every class is shown with its parse count. All five dungeons are pooled here.</p>
 <div class="panel">
 <div class="tabs" role="tablist" id="ktTabs"></div>
 <div id="ktChart"></div>
@@ -124,7 +124,7 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 <ul class="tight">
 <li><b>Vs typical</b> is the fairest single number: it removes boss HP and difficulty differences. A class at +10% does 10% more damage than the median DPS player on the same boss.</li>
 <li><b>Player-best</b> figures count each player once at their best parse, so someone who runs a boss fifty times cannot skew a class. The headline lens uses every parse.</li>
-<li><b>Kill-time matched</b> is the same comparison inside speed tiers (top 1% / 5% / 10% / 20% / 50% fastest, and the bottom 50%) — it neutralises the "burst class only gets fast kills" and "sustained class only in slow parties" biases.</li>
+<li><b>Kill-time matched</b> is the same comparison inside speed tiers (top 5% / 10% / 20% / 50% fastest, and the bottom 50%) — it neutralises the "burst class only gets fast kills" and "sustained class only in slow parties" biases.</li>
 <li><b>Same gear</b> uses only players in the most common kit (+6 weapon, Chrono Brooch, +6 armor) — smaller sample, but gear is held constant.</li>
 <li>Anonymous players are included in DPS stats but can't be de-duplicated; distinct-player counts are lower bounds.</li>
 <li>Gear sections cover parses with a recorded equipment snapshot; coverage is shown in that section.</li>
