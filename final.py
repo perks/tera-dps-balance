@@ -58,11 +58,11 @@ out["relIndex"]=relidx(F)
 out["relIndexByArea"]={a:relidx([s for s in F if s["area"]==a]) for a in areas}
 # ---------- kill-time tiers ----------
 # Kills on each boss are ranked fastest-first and cut into speed tiers: the top
-# 5%, 10%, 20% and 50% fastest, plus the bottom 50%. The top tiers are
+# 5%, 10%, 20%, 30%, 40% and 50% fastest, plus the bottom 50%. The top tiers are
 # cumulative (top 5% contains the top 1%), which keeps the small tiers usable on
 # thin bosses. Classes are only ever compared inside the same tier on the same
 # boss, so a fast kill is never measured against a slow one.
-TIERS=[(0.05,"Top 5% fastest"),(0.10,"Top 10%"),(0.20,"Top 20%"),(0.50,"Top 50%"),(None,"Bottom 50%")]
+TIERS=[(0.05,"Top 5% fastest"),(0.10,"Top 10%"),(0.20,"Top 20%"),(0.30,"Top 30%"),(0.40,"Top 40%"),(0.50,"Top 50%"),(None,"Bottom 50%")]
 NT=len(TIERS)
 def fmt(sec):
     sec=int(round(sec))
