@@ -91,9 +91,12 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 
 <section>
 <h2>Kill-time matched comparison</h2>
-<p class="lead">Burst classes look better on fast kills, sustained classes on long ones. Every boss's kills are ranked fastest first and cut into speed tiers. Each class is compared only against the other classes in <b>the same tier on the same boss</b>, so a fast kill is never measured against a slow one. Tiers are cumulative — the top 10% contains the top 5% — which keeps the small tiers usable. Every class is shown with its parse count. All five dungeons are pooled here.</p>
+<p class="lead">Burst classes look better on fast kills, sustained classes on long ones. Every boss's kills are ranked fastest first and cut into speed tiers. Each class is compared only against the other classes in <b>the same tier on the same boss</b>, so a fast kill is never measured against a slow one. Tiers are cumulative — the top 10% contains the top 5% — which keeps the small tiers usable. Every class is shown with its parse count. <b>One parse per player</b> first reduces each player to their single best parse on each boss, so an unusually active player cannot weight a class; the baseline is rebuilt to match. All five dungeons are pooled here.</p>
 <div class="panel">
-<div class="tabs" role="tablist" id="ktTabs"></div>
+<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;justify-content:space-between;margin-bottom:8px">
+<div class="tabs" role="tablist" id="ktTabs" style="margin:0"></div>
+<label class="hdr" style="cursor:pointer;white-space:nowrap"><input type="checkbox" id="ktBest"> one parse per player</label>
+</div>
 <div id="ktChart"></div>
 <p class="note" id="ktNote"></p>
 </div>
@@ -174,18 +177,21 @@ AREAS.forEach((a,i)=>{const b=document.createElement('button');b.role='tab';b.te
 at.children[0].click();
 // kill time: pooled across dungeons, one tab per speed group
 const ktTabs=document.getElementById('ktTabs');
-function ktBucket(i){const B=D.killTimeGlobal[i];
+let ktIdx=0;
+function ktBucket(i){ktIdx=i;const best=document.getElementById('ktBest').checked;const B=(best?D.killTimeGlobalBest:D.killTimeGlobal)[i];
  const rows=Object.entries(B.classes).sort((a,b)=>b[1].rel-a[1].rel);
  barChart(document.getElementById('ktChart'),rows.map(([c,v])=>[c,{avg:v.rel,n:v.n,players:''}]),'avg','kills');
  const tot=rows.reduce((s,r)=>s+r[1].n,0);
  const ns=rows.map(r=>r[1].n), lo=Math.min(...ns), hi=Math.max(...ns);
- const thin=lo<10?` Class samples here run from ${lo} to ${hi} parses — too few to separate the classes, so read the ordering as noise rather than a ranking.`:'';
- document.getElementById('ktNote').textContent=`${tot.toLocaleString()} parses in this tier across ${B.bosses.length} bosses, each measured against the other classes in the same tier on the same boss.`+thin;
+ const thin=lo<10?` Class samples here run from ${lo} to ${hi} — too few to separate the classes, so read the ordering as noise rather than a ranking.`:'';
+ const mode=best?`Each player counted once at their best parse per boss. `:'';
+ document.getElementById('ktNote').textContent=mode+`${tot.toLocaleString()} ${best?'entries':'parses'} in this tier across ${B.bosses.length} bosses, each measured against the other classes in the same tier on the same boss.`+thin;
  document.getElementById('ktRanges').innerHTML=`<table><thead><tr><th>boss</th><th>kills</th><th>kill times in this tier</th></tr></thead><tbody>`+
   B.bosses.map(r=>`<tr><td>${r.boss.replace('Nightmare ','N. ')}</td><td class="n">${r.n}</td><td>${dur(r.lo)} – ${dur(r.hi)}</td></tr>`).join('')+`</tbody></table>`;
 }
 D.killTimeGlobal.forEach((B,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=B.label;b.setAttribute('aria-selected',i===0);
  b.onclick=()=>{[...ktTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));ktBucket(i)};ktTabs.appendChild(b)});
+document.getElementById('ktBest').onchange=()=>ktBucket(ktIdx);
 ktBucket(0);
 // per-boss detail
 const sel=document.getElementById('bossSel');

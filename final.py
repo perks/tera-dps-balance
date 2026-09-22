@@ -96,26 +96,35 @@ for a in areas:
             bk.append(row)
         out["killTime"][a+" / "+b]=dict(labels=labels,n=len(xs),counts=counts,ranges=ranges,buckets=bk)
 out["killTimeIndex"]={c:dict(rel=v[0]/v[1],n=v[1]) for c,v in acc.items()}
-# Pooled view: every parse in the tier counts, normalised against the median of
-# its own boss+tier. A class no longer has to clear a per-boss minimum to appear,
-# so thin tiers still show the whole roster - with n on screen so the reader can
-# judge how thin.
-gp=[collections.defaultdict(list) for _ in range(NT)]
-granges=[[] for _ in range(NT)]
-for a in areas:
-    for b in sorted({s["boss"] for s in F if s["area"]==a}):
-        xs=[s for s in F if s["area"]==a and s["boss"]==b]
-        if not xs: continue
-        key=a+" / "+b
-        for ti,(pct,lab) in enumerate(TIERS):
-            bx=tier_slice(xs,pct)
-            if not bx: continue
-            med=st.median([x["dps"] for x in bx])
-            for x in bx: gp[ti][x["cls"]].append(x["dps"]/med)
-            granges[ti].append(dict(boss=key,lo=min(x["dur"] for x in bx),hi=max(x["dur"] for x in bx),n=len(bx)))
-out["killTimeGlobal"]=[dict(label=TIERS[ti][1],
-    classes={c:dict(n=len(v),rel=st.mean(v),players=None) for c,v in gp[ti].items() if len(v)>=3},
-    bosses=sorted(granges[ti],key=lambda r:-r["n"])) for ti in range(NT)]
+# Pooled view, built twice. "all" counts every parse; "best" first reduces each
+# player to their single best parse per boss, so an active player cannot weight a
+# class. In both modes the baseline median is rebuilt from the same population
+# the classes are drawn from, otherwise the levels would not be comparable.
+def pooled(samples):
+    gp=[collections.defaultdict(list) for _ in range(NT)]
+    granges=[[] for _ in range(NT)]
+    for a in areas:
+        for b in sorted({s["boss"] for s in samples if s["area"]==a}):
+            xs=[s for s in samples if s["area"]==a and s["boss"]==b]
+            if not xs: continue
+            key=a+" / "+b
+            for ti,(pct,lab) in enumerate(TIERS):
+                bx=tier_slice(xs,pct)
+                if not bx: continue
+                med=st.median([x["dps"] for x in bx])
+                for x in bx: gp[ti][x["cls"]].append(x["dps"]/med)
+                granges[ti].append(dict(boss=key,lo=min(x["dur"] for x in bx),hi=max(x["dur"] for x in bx),n=len(bx)))
+    return [dict(label=TIERS[ti][1],
+        classes={c:dict(n=len(v),rel=st.mean(v),players=None) for c,v in gp[ti].items() if len(v)>=3},
+        bosses=sorted(granges[ti],key=lambda r:-r["n"])) for ti in range(NT)]
+bestonly={}
+for s2 in F:
+    k=(s2["pid"],s2["area"],s2["boss"])
+    if k not in bestonly or s2["dps"]>bestonly[k]["dps"]: bestonly[k]=s2
+FB=list(bestonly.values())
+out["killTimeGlobal"]=pooled(F)
+out["killTimeGlobalBest"]=pooled(FB)
+out["killTimeModes"]=dict(all=len(F),best=len(FB))
 out["durByClass"]={c:dict(medDur=st.median([s["dur"] for s in F if s["cls"]==c])) for c in CLS}
 G=[s for s in F if s["hasGear"] and s["wEnch"] is not None]
 TIERS=["<=+5 weapon","+6 weapon","+7 weapon","+8/+9 weapon"]
