@@ -91,17 +91,17 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 
 <section>
 <h2>Kill-time matched comparison</h2>
-<p class="lead">Burst classes look better on fast kills, sustained classes on long ones. Every boss's kills are split into four speed groups, and each class is compared only against the other classes in <b>the same group on the same boss</b>. All five dungeons are pooled here.</p>
+<p class="lead">Burst classes look better on fast kills, sustained classes on long ones. Kills are grouped into <b>30-second bands</b> measured from each boss's fast baseline, and each class is compared only against the other classes in <b>the same band on the same boss</b>. Anything more than 2m 30s off the pace shares one band. All five dungeons are pooled here.</p>
 <div class="panel">
 <div class="tabs" role="tablist" id="ktTabs"></div>
 <div id="ktChart"></div>
 <p class="note" id="ktNote"></p>
 </div>
-<details><summary>What counts as fast on each boss</summary><div class="inner tscroll" id="ktRanges"></div></details>
+<details><summary>What each band covers on each boss</summary><div class="inner tscroll" id="ktRanges"></div></details>
 <details><summary>Per-boss breakdown</summary><div class="inner">
 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><label for="bossSel" class="hdr">Boss</label><select id="bossSel"></select><span class="n" id="bossN"></span></div>
 <div class="tscroll" id="ktTable"></div>
-<p class="legend">Cells show each class's average against the middle of that speed group. Blank = fewer than 3 kills.</p>
+<p class="legend">Cells show each class's average against the middle of that band. Blank = fewer than 3 kills in the band.</p>
 </div></details>
 </section>
 
@@ -124,7 +124,7 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 <ul class="tight">
 <li><b>Vs typical</b> is the fairest single number: it removes boss HP and difficulty differences. A class at +10% does 10% more damage than the median DPS player on the same boss.</li>
 <li><b>Player-best</b> figures count each player once at their best parse, so someone who runs a boss fifty times cannot skew a class. The headline lens uses every parse.</li>
-<li><b>Kill-time matched</b> is the same comparison inside speed groups — it neutralises the "burst class only gets fast kills" and "sustained class only in slow parties" biases.</li>
+<li><b>Kill-time matched</b> is the same comparison inside 30-second kill-time bands — it neutralises the "burst class only gets fast kills" and "sustained class only in slow parties" biases.</li>
 <li><b>Same gear</b> uses only players in the most common kit (+6 weapon, Chrono Brooch, +6 armor) — smaller sample, but gear is held constant.</li>
 <li>Anonymous players are included in DPS stats but can't be de-duplicated; distinct-player counts are lower bounds.</li>
 <li>Gear sections cover parses with a recorded equipment snapshot; coverage is shown in that section.</li>
@@ -177,8 +177,8 @@ function ktBucket(i){const B=D.killTimeGlobal[i];
  const rows=Object.entries(B.classes).sort((a,b)=>b[1].rel-a[1].rel);
  barChart(document.getElementById('ktChart'),rows.map(([c,v])=>[c,{avg:v.rel,n:v.n,players:''}]),'avg','kills');
  const tot=rows.reduce((s,r)=>s+r[1].n,0);
- document.getElementById('ktNote').textContent=`${tot.toLocaleString()} parses in this speed group across ${B.bosses.length} bosses. Each class is measured against the other classes in the same group on the same boss, so a fast kill is never compared with a slow one.`;
- document.getElementById('ktRanges').innerHTML=`<table><thead><tr><th>boss</th><th>kills</th><th>fight length in this group</th></tr></thead><tbody>`+
+ document.getElementById('ktNote').textContent=`${tot.toLocaleString()} parses in this band across ${B.bosses.length} bosses. Each class is measured only against the other classes in the same band on the same boss, so a fast kill is never compared with a slow one. The baseline is the boss's 10th-percentile kill time, so a single freak run cannot shift the bands.`;
+ document.getElementById('ktRanges').innerHTML=`<table><thead><tr><th>boss</th><th>kills</th><th>fight length in this band</th></tr></thead><tbody>`+
   B.bosses.map(r=>`<tr><td>${r.boss.replace('Nightmare ','N. ')}</td><td class="n">${r.n}</td><td>${dur(r.lo)} – ${dur(r.hi)}</td></tr>`).join('')+`</tbody></table>`;
 }
 D.killTimeGlobal.forEach((B,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=B.label;b.setAttribute('aria-selected',i===0);
@@ -190,7 +190,7 @@ const bossKeys=Object.keys(D.killTime).sort((a,b)=>D.killTime[b].n-D.killTime[a]
 bossKeys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${k.replace('Nightmare ','N. ')} (${D.killTime[k].n})`;sel.appendChild(o)});
 function kt(k){const K=D.killTime[k];document.getElementById('bossN').textContent=`${K.n} parses`;
  const present=CLS.filter(c=>K.buckets.some(b=>b[c]));
- document.getElementById('ktTable').innerHTML=`<table class="heat"><thead><tr><th>class</th>${K.labels.map((l,i)=>`<th>${['fastest','','','slowest'][i]||''} ${durLabel(l)}</th>`).join('')}<th>all groups</th></tr></thead><tbody>`+
+ document.getElementById('ktTable').innerHTML=`<table class="heat"><thead><tr><th>class</th>${K.labels.map((l,i)=>`<th>${durLabel(l)}<span class="n" style="display:block;font-weight:400">${K.counts?K.counts[i]+' kills':''}</span></th>`).join('')}<th>all bands</th></tr></thead><tbody>`+
  present.map(c=>{const vals=K.buckets.map(b=>b[c]);const have=vals.filter(Boolean);const avg=have.length?have.reduce((s,v)=>s+v.rel*v.n,0)/have.reduce((s,v)=>s+v.n,0):null;
   return `<tr><td><b>${c}</b></td>${vals.map(v=>`<td title="${v?`${v.n} kills · avg ${fk(v.avg)} · best ${fk(v.max)}`:''}">${v?pill(v.rel)+` <span class="n">${v.n}</span>`:''}</td>`).join('')}<td>${pill(avg)}</td></tr>`}).join('')+`</tbody></table>`}
 sel.onchange=()=>kt(sel.value);kt(bossKeys[0]);

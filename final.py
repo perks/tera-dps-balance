@@ -56,39 +56,54 @@ def relidx(sub):
     return r
 out["relIndex"]=relidx(F)
 out["relIndexByArea"]={a:relidx([s for s in F if s["area"]==a]) for a in areas}
+# ---------- kill-time bands ----------
+# Fixed 30-second bands anchored on each boss's fastest recorded kill, capped at
+# six: everything more than 2m30s off the pace lands in one "slow" band. Band i
+# therefore means the same thing on every boss - "this far off that boss's best
+# time" - so the bands can be pooled across dungeons.
+BAND=30; NBAND=6
+def bands(durs):
+    base=int(q(durs,.10)//BAND)*BAND  # anchor on the 10th percentile, not one outlier run
+    return base,[base+BAND*i for i in range(1,NBAND)]
+def bandof(d,base): return min(NBAND-1,max(0,int((d-base)//BAND)))
+def fmt(sec):
+    sec=int(round(sec))
+    return f"{sec}s" if sec<60 else (f"{sec//60}m {sec%60}s" if sec%60 else f"{sec//60}m")
 out["killTime"]={}; acc=collections.defaultdict(lambda:[0,0])
 for a in areas:
     for b in sorted({s["boss"] for s in F if s["area"]==a}):
         xs=[s for s in F if s["area"]==a and s["boss"]==b]
-        cuts=[q([x["dur"] for x in xs],p) for p in (.25,.5,.75)]
-        labels=["<="+str(int(cuts[0]))+"s",str(int(cuts[0]))+"-"+str(int(cuts[1]))+"s",str(int(cuts[1]))+"-"+str(int(cuts[2]))+"s",">"+str(int(cuts[2]))+"s"]
+        if not xs: continue
+        base,edges=bands([x["dur"] for x in xs])
+        labels=[f"under {fmt(base+BAND)}"]+[f"{fmt(base+BAND*i)}–{fmt(base+BAND*(i+1))}" for i in range(1,NBAND-1)]+[f"{fmt(base+BAND*(NBAND-1))}+"]
         bk=[]
-        for bi in range(4):
-            bx=[x for x in xs if sum(x["dur"]>c for c in cuts)==bi]
+        for bi in range(NBAND):
+            bx=[x for x in xs if bandof(x["dur"],base)==bi]
             if not bx: bk.append({}); continue
             med=st.median([x["dps"] for x in bx]); row={}
             for c in CLS:
                 cx=[x["dps"] for x in bx if x["cls"]==c]
                 if len(cx)>=3:
-                    row[c]=dict(n=len(cx),avg=st.mean(cx),rel=st.mean(cx)/med,max=max(cx)); acc[c][0]+=row[c]["rel"]*len(cx); acc[c][1]+=len(cx)
+                    row[c]=dict(n=len(cx),avg=st.mean(cx),rel=st.mean(cx)/med,max=max(cx))
+                    acc[c][0]+=row[c]["rel"]*len(cx); acc[c][1]+=len(cx)
             bk.append(row)
-        out["killTime"][a+" / "+b]=dict(labels=labels,n=len(xs),buckets=bk)
+        out["killTime"][a+" / "+b]=dict(labels=labels,n=len(xs),base=base,
+            counts=[sum(1 for x in xs if bandof(x["dur"],base)==bi) for bi in range(NBAND)],buckets=bk)
 out["killTimeIndex"]={c:dict(rel=v[0]/v[1],n=v[1]) for c,v in acc.items()}
-BLAB=["Fastest 25% of kills","Faster half","Slower half","Slowest 25% of kills"]
-gacc=[collections.defaultdict(lambda:[0,0]) for _ in range(4)]
-granges=[[] for _ in range(4)]
+BLAB=["Fastest kills","30s–1m slower","1m–1m 30s slower","1m 30s–2m slower","2m–2m 30s slower","Over 2m 30s slower"]
+gacc=[collections.defaultdict(lambda:[0,0]) for _ in range(NBAND)]
+granges=[[] for _ in range(NBAND)]
 for key,v in out["killTime"].items():
     for bi,row in enumerate(v["buckets"]):
         for c,dd in row.items():
             gacc[bi][c][0]+=dd["rel"]*dd["n"]; gacc[bi][c][1]+=dd["n"]
     xs=[s2 for s2 in F if s2["area"]+" / "+s2["boss"]==key]
-    cuts=[q([x["dur"] for x in xs],pp) for pp in (.25,.5,.75)] if xs else [0,0,0]
-    for bi in range(4):
-        bx=[x["dur"] for x in xs if sum(x["dur"]>c for c in cuts)==bi]
+    for bi in range(NBAND):
+        bx=[x["dur"] for x in xs if bandof(x["dur"],v["base"])==bi]
         if bx: granges[bi].append(dict(boss=key,lo=min(bx),hi=max(bx),n=len(bx)))
 out["killTimeGlobal"]=[dict(label=BLAB[bi],
-    classes={c:dict(n=v[1],rel=v[0]/v[1]) for c,v in gacc[bi].items() if v[1]>=5},
-    bosses=sorted(granges[bi],key=lambda r:-r["n"])) for bi in range(4)]
+    classes={c:dict(n=w[1],rel=w[0]/w[1]) for c,w in gacc[bi].items() if w[1]>=5},
+    bosses=sorted(granges[bi],key=lambda r:-r["n"])) for bi in range(NBAND)]
 out["durByClass"]={c:dict(medDur=st.median([s["dur"] for s in F if s["cls"]==c])) for c in CLS}
 G=[s for s in F if s["hasGear"] and s["wEnch"] is not None]
 TIERS=["<=+5 weapon","+6 weapon","+7 weapon","+8/+9 weapon"]
