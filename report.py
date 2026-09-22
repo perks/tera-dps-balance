@@ -166,7 +166,8 @@ lenses.forEach((L,i)=>{const b=document.createElement('button');b.role='tab';b.t
 tabs.children[0].click();
 // area tables
 const at=document.getElementById('areaTabs');
-function areaTable(a){const rows=Object.entries(D.byArea[a]).sort((x,y)=>y[1].med-x[1].med);
+function areaTable(a){const vs=c=>(D.relIndexByArea[a]&&D.relIndexByArea[a][c]?D.relIndexByArea[a][c].avg:-1);
+ const rows=Object.entries(D.byArea[a]).sort((x,y)=>vs(y[0])-vs(x[0]));
  document.getElementById('areaTable').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>uniq</th><th>min</th><th>p25</th><th>median</th><th>avg</th><th>p75</th><th>p90</th><th>max</th><th>vs typical</th></tr></thead><tbody>`+
  rows.map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td class="n">${r.players}</td><td class="n">${fk(r.min)}</td><td class="n">${fk(r.p25)}</td><td><b>${fk(r.med)}</b></td><td>${fk(r.avg)}</td><td class="n">${fk(r.p75)}</td><td>${fk(r.p90)}</td><td>${fk(r.max)}</td><td>${pill(D.relIndexByArea[a][c]&&D.relIndexByArea[a][c].avg)}</td></tr>`).join('')+`</tbody></table>`}
 AREAS.forEach((a,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=a;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...at.children].forEach(x=>x.setAttribute('aria-selected',x===b));areaTable(a)};at.appendChild(b)});

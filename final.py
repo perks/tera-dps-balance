@@ -7,11 +7,17 @@ S=[]; drop=collections.Counter()
 # Encounter details are the source of truth. The rankings row only supplies the
 # timestamp; encounters that have since dropped off the board (the board keeps
 # each player's best parse per boss) are still counted, they just have no date.
-delisted=0
+# /recent supplies area + timestamp for encounters the rankings board never
+# surfaced (it only keeps each player's best parse per boss)
+ridx=json.load(open("recent_index.json")) if os.path.exists("recent_index.json") else {}
+offboard=0
 for f in os.listdir("enc"):
     d=json.load(open("enc/"+f))
     m=meta.get(d["uid"])
-    if m is None: delisted+=1; m={"areaId":d.get("area"),"encounterUnixEpoch":None}
+    if m is None:
+        offboard+=1
+        r=ridx.get(d["uid"]) or {}
+        m={"areaId":r.get("area",d.get("area")),"encounterUnixEpoch":r.get("ts")}
     psize=len(d["players"])
     seen=set()
     for p in d["players"]:
@@ -27,7 +33,7 @@ for f in os.listdir("enc"):
             ilvl=p["ilvl"],wEnch=p["wEnchant"],brooch=p["brooch"],hasGear=p["hasGear"],
             enr=sum(1 for r in wr if "enraged" in r),flat=sum(1 for r in wr if r.startswith("Increases damage by 6.0%")),
             behind=sum(1 for r in wr if "from behind" in r),armor=tuple(p["armorEnchant"].values())))
-print("samples",len(S),"drop",dict(drop),"| encounters no longer on the board (kept):",delisted)
+print("samples",len(S),"drop",dict(drop),"| encounters not on the rankings board (kept):",offboard)
 def q(xs,p):
     xs=sorted(xs); k=(len(xs)-1)*p; f=int(k); c=min(f+1,len(xs)-1); return xs[f]+(xs[c]-xs[f])*(k-f)
 def stats(xs,pids): return dict(n=len(xs),players=len(set(pids)),min=min(xs),p25=q(xs,.25),med=st.median(xs),avg=st.mean(xs),p75=q(xs,.75),p90=q(xs,.9),max=max(xs))

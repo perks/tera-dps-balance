@@ -1,0 +1,73 @@
+
+=== fetch.py ===
+556 TS Hard 1011
+456 TS Savage 155
+568 SS Hard 819
+468 SS Savage 226
+507 Dragon's Landing 1670
+rows 3881 unique encounters 2750
+
+2750 encounters referenced, 2281 already cached, ~469 to fetch
+
+=== fetchgear.py ===
+2750 referenced | 2281 cached | 1025 known-missing | 0 to fetch
+done in 0s | fetched 0 | not retrievable 0 | failed 0 | cache now 2281
+
+=== final.py ===
+samples 6843 drop {'dup': 21, 'role=tank': 227, 'dps<50k': 74} | encounters no longer on the board (kept): 556
+{"samples": 6843, "five": 6658, "encounters": 2280, "players": 1397, "anon": 660, "dateFrom": 1788526079, "dateTo": 1790088696, "drop": {"dup": 21, "role=tank": 227, "dps<50k": 74}}
+
+relIndex
+  Ninja      {'n': 932, 'players': 183, 'avg': 1.107, 'med': 1.094, 'p90': 1.62, 'top10': 1.868, 'playerBestMed': 1.164}
+  Warrior    {'n': 1366, 'players': 258, 'avg': 1.102, 'med': 1.066, 'p90': 1.65, 'top10': 1.944, 'playerBestMed': 1.293}
+  Reaper     {'n': 556, 'players': 114, 'avg': 1.083, 'med': 1.041, 'p90': 1.596, 'top10': 1.91, 'playerBestMed': 1.08}
+  Sorcerer   {'n': 629, 'players': 123, 'avg': 1.047, 'med': 1.011, 'p90': 1.544, 'top10': 1.815, 'playerBestMed': 1.16}
+  Archer     {'n': 707, 'players': 171, 'avg': 1.029, 'med': 0.978, 'p90': 1.55, 'top10': 1.851, 'playerBestMed': 0.966}
+  Valkyrie   {'n': 613, 'players': 128, 'avg': 0.986, 'med': 0.972, 'p90': 1.48, 'top10': 1.689, 'playerBestMed': 1.087}
+  Gunner     {'n': 480, 'players': 102, 'avg': 0.977, 'med': 0.942, 'p90': 1.421, 'top10': 1.74, 'playerBestMed': 0.867}
+  Berserker  {'n': 798, 'players': 193, 'avg': 0.959, 'med': 0.92, 'p90': 1.431, 'top10': 1.698, 'playerBestMed': 0.915}
+  Slayer     {'n': 577, 'players': 132, 'avg': 0.947, 'med': 0.915, 'p90': 1.406, 'top10': 1.651, 'playerBestMed': 0.924}
+
+killTimeIndex
+  Reaper     {'rel': 1.059, 'n': 1176}
+  Ninja      {'rel': 1.055, 'n': 1966}
+  Warrior    {'rel': 1.052, 'n': 2985}
+  Archer     {'rel': 1.028, 'n': 1450}
+  Sorcerer   {'rel': 1.027, 'n': 1161}
+  Berserker  {'rel': 0.967, 'n': 1496}
+  Gunner     {'rel': 0.965, 'n': 926}
+  Valkyrie   {'rel': 0.964, 'n': 1164}
+  Slayer     {'rel': 0.94, 'n': 1062}
+
+STD bucket n= 3690
+  Warrior    {'n': 832, 'players': 184, 'avg': 1.142, 'med': 1.09, 'p90': 1.733, 'top10': 1.994, 'playerBestMed': 1.434}
+  Ninja      {'n': 159, 'players': 37, 'avg': 1.121, 'med': 1.13, 'p90': 1.581, 'top10': 1.741, 'playerBestMed': 1.305}
+  Archer     {'n': 385, 'players': 101, 'avg': 1.058, 'med': 1.032, 'p90': 1.584, 'top10': 1.812, 'playerBestMed': 1.191}
+  Reaper     {'n': 369, 'players': 84, 'avg': 1.058, 'med': 1.021, 'p90': 1.556, 'top10': 1.834, 'playerBestMed': 1.246}
+  Sorcerer   {'n': 397, 'players': 84, 'avg': 1.054, 'med': 1.019, 'p90': 1.533, 'top10': 1.737, 'playerBestMed': 1.251}
+  Gunner     {'n': 271, 'players': 63, 'avg': 1.033, 'med': 1.007, 'p90': 1.43, 'top10': 1.727, 'playerBestMed': 1.041}
+  Berserker  {'n': 533, 'players': 123, 'avg': 0.984, 'med': 0.966, 'p90': 1.382, 'top10': 1.549, 'playerBestMed': 1.064}
+  Valkyrie   {'n': 432, 'players': 89, 'avg': 0.984, 'med': 0.984, 'p90': 1.443, 'top10': 1.625, 'playerBestMed': 1.192}
+  Slayer     {'n': 312, 'players': 79, 'avg': 0.977, 'med': 0.962, 'p90': 1.436, 'top10': 1.657, 'playerBestMed': 1.162}
+
+tierEffect {'<=+5 weapon': {'n': 350, 'med': 0.6787098550111217}, '+6 weapon': {'n': 5036, 'med': 0.9938749679775438}, '+7 weapon': {'n': 346, 'med': 1.2107968112292462}, '+8/+9 weapon': {'n': 278, 'med': 1.3703572519655274}} 
+brooch {'Chrono Brooch': {'n': 3852, 'med': 1.0175541402880093}, 'Kumasylum Brooch': {'n': 550, 'med': 0.739697827608712}, 'Crimson Brooch': {'n': 574, 'med': 1.0888118245931726}}
+
+class gear profile
+  Archer     {'n': 661, 'avgIlvl': 405.878, 'avgWEnch': 6.138, 'pctChrono': 0.758, 'pct7plus': 0.159}
+  Gunner     {'n': 442, 'avgIlvl': 406.323, 'avgWEnch': 6.061, 'pctChrono': 0.828, 'pct7plus': 0.172}
+  Berserker  {'n': 743, 'avgIlvl': 406.902, 'avgWEnch': 6.032, 'pctChrono': 0.836, 'pct7plus': 0.079}
+  Warrior    {'n': 1218, 'avgIlvl': 406.968, 'avgWEnch': 6.029, 'pctChrono': 0.849, 'pct7plus': 0.128}
+  Valkyrie   {'n': 581, 'avgIlvl': 407.671, 'avgWEnch': 6.012, 'pctChrono': 0.857, 'pct7plus': 0.088}
+  Reaper     {'n': 485, 'avgIlvl': 407.175, 'avgWEnch': 5.998, 'pctChrono': 0.856, 'pct7plus': 0.08}
+  Slayer     {'n': 507, 'avgIlvl': 406.397, 'avgWEnch': 5.963, 'pctChrono': 0.7, 'pct7plus': 0.063}
+  Sorcerer   {'n': 541, 'avgIlvl': 406.864, 'avgWEnch': 5.93, 'pctChrono': 0.847, 'pct7plus': 0.052}
+  Ninja      {'n': 832, 'avgIlvl': 405.875, 'avgWEnch': 5.846, 'pctChrono': 0.214, 'pct7plus': 0.094}
+
+=== report.py ===
+ok 152393
+
+=== hub.py ===
+ok 8150
+
+Done. Regenerated tera-dps-balance/index.html and index.html
