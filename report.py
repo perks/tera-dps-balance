@@ -265,14 +265,14 @@ function moves(m){
   if(!A1||!A0||!A1.moveIndex||!A0.moveIndex) return '';
   const t1=A1.moveIndex, t0=A0.moveIndex;
   const chg=new Set(m.classes.filter(c=>c.dir!=='pvp').map(c=>c.cls));
-  const d=Object.keys(t1).filter(c=>t0[c]&&t1[c].n>=50&&t0[c].n>=50)
+  const d=Object.keys(t1).filter(c=>t0[c]&&t1[c].n>=30&&t0[c].n>=30)
     .map(c=>[c,(t1[c].rel-t0[c].rel)*100])
     .filter(x=>Math.abs(x[1])>=3).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,5);
-  const lab=`<span class="mlab">Movement vs ${prev.name} \u00b7 fastest 20% of kills, gear held equal</span>`;
+  const lab=`<span class="mlab">Movement vs ${prev.name} \u00b7 fastest 10% of kills</span>`;
   if(!d.length) return `<div class="moves">${lab}<span class="cav">No class moved by more than 3 points.</span></div>`;
   return `<div class="moves">${lab}`+
-   d.map(([c,v])=>`<span class="mv ${v>0?'up':'down'}" title="${c}: ${Math.abs(v).toFixed(1)} points ${v>0?'higher':'lower'} than in ${prev.name}, against players carrying the same weapon enchant on the same boss">${c} ${v>0?'+':'\u2212'}${Math.abs(v).toFixed(0)}${chg.has(c)?'<sup>\u25cf</sup>':''}</span>`).join('')+
-   `<span class="cav">Everyone upgrades between patches, so each class is measured against players carrying the <b>same weapon enchant on the same boss</b> \u2014 shared gear progress cancels out and only a class's own change shows. Taken from the fastest 20% of kills, where runs go to plan. Figures are points on a relative scale, so one class climbing pushes the rest down.${d.some(([c])=>chg.has(c))?' \u25cf marks a class this patch changed directly.':''}</span></div>`;
+   d.map(([c,v])=>`<span class="mv ${v>0?'up':'down'}" title="${c}: ${Math.abs(v).toFixed(1)} points ${v>0?'higher':'lower'} than in ${prev.name}, across the fastest 10% of kills on each boss">${c} ${v>0?'+':'\u2212'}${Math.abs(v).toFixed(0)}${chg.has(c)?'<sup>\u25cf</sup>':''}</span>`).join('')+
+   `<span class="cav">Taken from the fastest 10% of kills on each boss \u2014 the end of the ladder where groups are geared and executing, which is the population a balance change is best judged on. Gear is not held constant, so some of the shift reflects upgrades as well as the patch. Figures are points on a relative scale, so one class climbing pushes the rest down.${d.some(([c])=>chg.has(c))?' \u25cf marks a class this patch changed directly.':''}</span></div>`;
 }
 
 // ---- patch selector ----

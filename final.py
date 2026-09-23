@@ -161,26 +161,25 @@ def build(S):
     out["killTimeGlobalBest"]=pooled(FB)
     out["killTimeModes"]=dict(all=len(F),best=len(FB))
     # ---------- movement metric ----------
-    # For comparing one patch against another: restricted to the fastest 20% of
-    # kills on each boss, and measured against players carrying the SAME weapon
-    # enchant on that boss. Everyone gears up between patches, so an ordinary
-    # boss-median baseline would read those upgrades as class changes; matching
-    # on enchant removes the shared drift.
+    # For comparing one patch against another: the fastest 10% of kills on each
+    # boss, measured against the median parse in that same group. No gear
+    # control - at this end of the ladder players are geared and executing, and
+    # that is the population a balance change should be judged on.
     fast=[]
     for k in {(x["area"],x["boss"]) for x in F}:
         xs=[x for x in F if (x["area"],x["boss"])==k]
-        cut=q([x["dur"] for x in xs],.20)
+        cut=q([x["dur"] for x in xs],.10)
         fast+=[x for x in xs if x["dur"]<=cut]
-    gm=collections.defaultdict(list)
-    for x in fast:
-        if x["wEnch"] is not None: gm[(x["area"],x["boss"],x["wEnch"])].append(x["dps"])
-    base={k:st.median(v) for k,v in gm.items() if len(v)>=5}
+    mb={}
+    for k in {(x["area"],x["boss"]) for x in fast}:
+        v=[x["dps"] for x in fast if (x["area"],x["boss"])==k]
+        if len(v)>=8: mb[k]=st.median(v)
     mv=collections.defaultdict(list)
     for x in fast:
-        k=(x["area"],x["boss"],x["wEnch"])
-        if x["wEnch"] is not None and k in base: mv[x["cls"]].append(x["dps"]/base[k])
-    out["moveIndex"]={c:dict(n=len(v),rel=st.mean(v)) for c,v in mv.items() if len(v)>=30}
-    out["moveCoverage"]=dict(used=sum(len(v) for v in mv.values()),fastest20=len(fast))
+        k=(x["area"],x["boss"])
+        if k in mb: mv[x["cls"]].append(x["dps"]/mb[k])
+    out["moveIndex"]={c:dict(n=len(v),rel=st.mean(v)) for c,v in mv.items() if len(v)>=25}
+    out["moveCoverage"]=dict(used=sum(len(v) for v in mv.values()),fastest=len(fast))
     out["durByClass"]={c:dict(medDur=st.median([s["dur"] for s in F if s["cls"]==c])) for c in CLS}
     G=[s for s in F if s["hasGear"] and s["wEnch"] is not None]
     TIERS=["<=+5 weapon","+6 weapon","+7 weapon","+8/+9 weapon"]
