@@ -60,6 +60,28 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 .tabs button{font:inherit;font-size:13px;font-weight:600;padding:5px 10px;border:1px solid var(--line2);background:var(--panel);color:var(--ink2);border-radius:4px;cursor:pointer}
 .tabs button[aria-selected=true]{background:var(--bar);border-color:var(--bar);color:#fff}
 .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.patchbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.patchbtn{flex:1 1 150px;min-width:140px;text-align:left;background:var(--panel);border:1px solid var(--line2);border-radius:7px;padding:9px 12px;cursor:pointer;font:inherit;color:var(--ink2);transition:border-color .12s,background .12s}
+.patchbtn:hover{background:var(--heat0)}
+.patchbtn[aria-selected=true]{border-color:var(--bar);background:var(--heat0);color:var(--ink);box-shadow:inset 0 0 0 1px var(--bar)}
+.patchbtn .pv{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:19px;letter-spacing:.01em;color:var(--ink);display:flex;align-items:baseline;gap:6px}
+.patchbtn .pv em{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--bar)}
+.patchbtn .pd{font-size:11.5px;color:var(--muted);margin-top:1px}
+.patchbtn .pn{font-size:12px;margin-top:4px;font-variant-numeric:tabular-nums}
+.patchbtn .chips{display:flex;gap:3px;flex-wrap:wrap;margin-top:6px}
+.chip{font-size:10px;font-weight:700;letter-spacing:.03em;padding:1px 5px;border-radius:3px;background:var(--mid-bg);color:var(--ink2)}
+.chip.buff{background:var(--pos-bg);color:var(--pos)}
+.chip.nerf{background:var(--neg-bg);color:var(--neg)}
+.chip.change{background:var(--mid-bg);color:var(--accent)}
+.chip.pvp{background:var(--mid-bg);color:var(--muted)}
+.tagchg.pvp{background:var(--mid-bg);color:var(--muted)}
+.patchinfo{border-left:3px solid var(--bar);background:var(--panel);border-radius:0 6px 6px 0;padding:10px 14px;margin:0 0 18px;font-size:14px}
+.patchinfo b{color:var(--ink)}
+.patchinfo ul{margin:6px 0 0 18px;padding:0}
+.patchinfo li{margin:3px 0;color:var(--ink2)}
+.tagchg{font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:1px 4px;border-radius:3px;margin-left:5px;vertical-align:1px}
+.tagchg.buff{background:var(--pos-bg);color:var(--pos)}
+.tagchg.change{background:var(--mid-bg);color:var(--accent)}
 .nav{display:flex;gap:14px;font-size:13px;font-weight:600;margin-bottom:14px;flex-wrap:wrap}.nav a{color:var(--ink2);text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}.nav a[aria-current]{color:var(--ink);border-color:var(--bar)}
 .nav{display:flex;gap:14px;font-size:13px;font-weight:600;margin-bottom:14px}.nav a{color:var(--ink2);text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}.nav a[aria-current]{color:var(--ink);border-color:var(--bar)}
 </style>
@@ -67,7 +89,9 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 <div class="nav"><a href="../">Home</a><a href="../tera-dps-balance/" aria-current="page">DPS classes</a><a href="../slayer-build/">Slayer build data</a><a href="../slayer-guide/">Slayer guide</a></div>
 <div class="eyebrow">TERA Europe Classic+ · public leaderboard API · __D0__ – __D1__</div>
 <h1>Classic+ DPS Balance</h1>
-<p class="sub">Every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded.</p>
+<p class="sub">Pick a patch below — class balance changed between them, so pooling every patch together blurs the picture. Everything on this page then reflects that patch only. Data covers every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded.</p>
+<div class="patchbar" id="patchbar" role="tablist"></div>
+<div class="patchinfo" id="patchinfo"></div>
 <div class="tiles" id="tiles"></div>
 
 <section>
@@ -146,81 +170,122 @@ const rel=v=>v==null?'':(v>=1?'+':'\u2212')+Math.round(Math.abs(v-1)*100)+'%';
 const pill=v=>v==null?'':`<span class="pill ${v>=1.05?'pos':v<=0.95?'neg':'mid'}" title="${f2(v)}\u00d7 the typical DPS player on the same boss">${rel(v)}</span>`;
 const dur=sec=>sec==null?'-':(sec<60?Math.round(sec)+'s':Math.floor(sec/60)+'m'+(Math.round(sec%60)?' '+Math.round(sec%60)+'s':''));
 const durLabel=l=>String(l).replace(/(\d+)\s*-\s*(\d+)s/g,(m,a,b)=>dur(+a)+'–'+dur(+b)).replace(/(?<![\d–])(\d+)s/g,(m,d)=>dur(+d));
-// tiles
-const ds=D.dataset;
-document.getElementById('tiles').innerHTML=[[ds.encounters,'kills'],[ds.five,'DPS parses'],[ds.players,'named players'],[Object.keys(D.killTime).length,'bosses']].map(([v,l])=>`<div class="tile"><b>${fmt(v)}</b><span>${l}</span></div>`).join('');
-// lens chart
-function barChart(el,rows,key,nkey,note){
-  const vals=rows.map(r=>r[1][key]); const lo=Math.min(0.8,...vals), hi=Math.max(1.2,...vals);
-  const pct=v=>((v-lo)/(hi-lo)*100);
-  el.innerHTML=`<div class="bars"><div class="hdr">class</div><div></div><div class="hdr" style="text-align:right">vs typical</div><div class="hdr" style="text-align:right">${nkey}</div>`+
-    rows.sort((a,b)=>b[1][key]-a[1][key]).map(([c,r])=>{const v=r[key];const z=pct(1);const p=pct(v);
-      const left=Math.min(z,p),w=Math.abs(p-z);
-      return `<div class="lab">${c}</div><div class="track"><div class="zero" style="left:${z}%"></div><div class="fill ${v>=1.03?'pos':v<=0.97?'neg':''}" style="left:${left}%;width:${w}%"></div></div><div class="v" title="${f2(v)}\u00d7">${rel(v)}</div><div class="nn">${r.n}${r.players?' <span style="opacity:.7">/ '+r.players+'</span>':''}</div>`}).join('')+`</div>`;
+function render(){
+ const ds=A.dataset;
+ for(const id of ['lensTabs','areaTabs','ktTabs']) document.getElementById(id).innerHTML='';
+ document.getElementById('bossSel').innerHTML='';
+ const ktBestEl=document.getElementById('ktBest');
+ document.getElementById('tiles').innerHTML=[[ds.encounters,'kills'],[ds.five,'DPS parses'],[ds.players,'named players'],[Object.keys(A.killTime).length,'bosses']].map(([v,l])=>`<div class="tile"><b>${fmt(v)}</b><span>${l}</span></div>`).join('');
+ // lens chart
+ function barChart(el,rows,key,nkey,note){
+   const vals=rows.map(r=>r[1][key]); const lo=Math.min(0.8,...vals), hi=Math.max(1.2,...vals);
+   const pct=v=>((v-lo)/(hi-lo)*100);
+   el.innerHTML=`<div class="bars"><div class="hdr">class</div><div></div><div class="hdr" style="text-align:right">vs typical</div><div class="hdr" style="text-align:right">${nkey}</div>`+
+     rows.sort((a,b)=>b[1][key]-a[1][key]).map(([c,r])=>{const v=r[key];const z=pct(1);const p=pct(v);
+       const left=Math.min(z,p),w=Math.abs(p-z);
+       const chg=(D.patchMeta.find(m=>m.id===ACTIVE)||{classes:[]}).classes.find(x=>x.cls===c);
+      return `<div class="lab">${c}${chg?`<span class="tagchg ${chg.dir}" title="${chg.text.replace(/"/g,'&quot;')}">${chg.dir==='buff'?'buffed':chg.dir==='nerf'?'nerfed':chg.dir==='pvp'?'PvP only':'changed'}</span>`:''}</div><div class="track"><div class="zero" style="left:${z}%"></div><div class="fill ${v>=1.03?'pos':v<=0.97?'neg':''}" style="left:${left}%;width:${w}%"></div></div><div class="v" title="${f2(v)}\u00d7">${rel(v)}</div><div class="nn">${r.n}${r.players?' <span style="opacity:.7">/ '+r.players+'</span>':''}</div>`}).join('')+`</div>`;
+ }
+ const lenses=[
+  {id:'raw',label:'All parses',rows:Object.entries(A.relIndex),key:'avg',nkey:'n / uniq',note:`Average across every parse. Counting each player once at their best parse instead: ${Object.entries(A.relIndex).sort((a,b)=>b[1].playerBestMed-a[1].playerBestMed).map(([c,r])=>c+' '+(r.playerBestMed>=1?'+':'−')+Math.round(Math.abs(r.playerBestMed-1)*100)+'%').join(' · ')}.`},
+  {id:'kt',label:'Kill-time matched',rows:Object.entries(A.killTimeIndex).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:A.relIndex[c].players}]),key:'avg',nkey:'n / uniq',note:'Class average ÷ median of the same duration quartile on the same boss, weighted by sample count across all 15 bosses.'},
+  {id:'gear',label:'Same gear',rows:Object.entries(A.gear.stdBucket.classes),key:'avg',nkey:'n / uniq',note:`Only players wearing ${A.gear.stdBucket.desc} (${A.gear.stdBucket.n} samples).`},
+  {id:'top',label:'Top 10% of players',rows:Object.entries(A.relIndex).map(([c,r])=>[c,{avg:r.top10,n:r.n,players:r.players}]),key:'avg',nkey:'n / uniq',note:'Average index of the best 10% of samples per class — the ceiling, not the typical player.'}
+ ];
+ const tabs=document.getElementById('lensTabs');
+ lenses.forEach((L,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=L.label;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...tabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('lensChart'),L.rows.map(r=>[r[0],{...r[1]}]),L.key,L.nkey);document.getElementById('lensNote').textContent=L.note};tabs.appendChild(b)});
+ tabs.children[0].click();
+ // area tables
+ const at=document.getElementById('areaTabs');
+ function areaTable(a){const vs=c=>(A.relIndexByArea[a]&&A.relIndexByArea[a][c]?A.relIndexByArea[a][c].avg:-1);
+  const rows=Object.entries(A.byArea[a]).sort((x,y)=>vs(y[0])-vs(x[0]));
+  document.getElementById('areaTable').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>uniq</th><th>min</th><th>p25</th><th>median</th><th>avg</th><th>p75</th><th>p90</th><th>max</th><th>vs typical</th></tr></thead><tbody>`+
+  rows.map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td class="n">${r.players}</td><td class="n">${fk(r.min)}</td><td class="n">${fk(r.p25)}</td><td><b>${fk(r.med)}</b></td><td>${fk(r.avg)}</td><td class="n">${fk(r.p75)}</td><td>${fk(r.p90)}</td><td>${fk(r.max)}</td><td>${pill(A.relIndexByArea[a][c]&&A.relIndexByArea[a][c].avg)}</td></tr>`).join('')+`</tbody></table>`}
+ AREAS.forEach((a,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=a;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...at.children].forEach(x=>x.setAttribute('aria-selected',x===b));areaTable(a)};at.appendChild(b)});
+ at.children[0].click();
+ // kill time: pooled across dungeons, one tab per speed group
+ const ktTabs=document.getElementById('ktTabs');
+ let ktIdx=0;
+ function ktBucket(i){ktIdx=i;const best=document.getElementById('ktBest').checked;const B=(best?A.killTimeGlobalBest:A.killTimeGlobal)[i];
+  const rows=Object.entries(B.classes).sort((a,b)=>b[1].rel-a[1].rel);
+  barChart(document.getElementById('ktChart'),rows.map(([c,v])=>[c,{avg:v.rel,n:v.n,players:''}]),'avg','kills');
+  const tot=rows.reduce((s,r)=>s+r[1].n,0);
+  const ns=rows.map(r=>r[1].n), lo=Math.min(...ns), hi=Math.max(...ns);
+  const thin=lo<10?` Class samples here run from ${lo} to ${hi} — too few to separate the classes, so read the ordering as noise rather than a ranking.`:'';
+  const mode=best?`Each player counted once at their best parse per boss. `:'';
+  document.getElementById('ktNote').textContent=mode+`${tot.toLocaleString()} ${best?'entries':'parses'} in this tier across ${B.bosses.length} bosses, each measured against the other classes in the same tier on the same boss.`+thin;
+  document.getElementById('ktRanges').innerHTML=`<table><thead><tr><th>boss</th><th>kills</th><th>kill times in this tier</th></tr></thead><tbody>`+
+   B.bosses.map(r=>`<tr><td>${r.boss.replace('Nightmare ','N. ')}</td><td class="n">${r.n}</td><td>${dur(r.lo)} – ${dur(r.hi)}</td></tr>`).join('')+`</tbody></table>`;
+ }
+ A.killTimeGlobal.forEach((B,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=B.label;b.setAttribute('aria-selected',i===0);
+  b.onclick=()=>{[...ktTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));ktBucket(i)};ktTabs.appendChild(b)});
+ document.getElementById('ktBest').onchange=()=>ktBucket(ktIdx);
+ ktBucket(0);
+ // per-boss detail
+ const sel=document.getElementById('bossSel');
+ const bossKeys=Object.keys(A.killTime).sort((a,b)=>A.killTime[b].n-A.killTime[a].n);
+ bossKeys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${k.replace('Nightmare ','N. ')} (${A.killTime[k].n})`;sel.appendChild(o)});
+ function kt(k){const K=A.killTime[k];document.getElementById('bossN').textContent=`${K.n} parses`;
+  const present=CLS.filter(c=>K.buckets.some(b=>b[c]));
+  document.getElementById('ktTable').innerHTML=`<table class="heat"><thead><tr><th>class</th>${K.labels.map((l,i)=>`<th>${l}<span class="n" style="display:block;font-weight:400">${K.counts?K.counts[i]+' kills':''}${K.ranges&&K.ranges[i]?' · '+dur(K.ranges[i][0])+'–'+dur(K.ranges[i][1]):''}</span></th>`).join('')}<th>all tiers</th></tr></thead><tbody>`+
+  present.map(c=>{const vals=K.buckets.map(b=>b[c]);const have=vals.filter(Boolean);const avg=have.length?have.reduce((s,v)=>s+v.rel*v.n,0)/have.reduce((s,v)=>s+v.n,0):null;
+   return `<tr><td><b>${c}</b></td>${vals.map(v=>`<td title="${v?`${v.n} kills · avg ${fk(v.avg)} · best ${fk(v.max)}`:''}">${v?pill(v.rel)+` <span class="n">${v.n}</span>`:''}</td>`).join('')}<td>${pill(avg)}</td></tr>`}).join('')+`</tbody></table>`}
+ sel.onchange=()=>kt(sel.value);kt(bossKeys[0]);
+ // gear
+ document.getElementById('gearCov').textContent=`${A.gear.coverage.withGear.toLocaleString()} of ${A.gear.coverage.of.toLocaleString()} (${Math.round(100*A.gear.coverage.withGear/A.gear.coverage.of)}%)`;
+ document.getElementById('gearEffect').innerHTML=`<table><thead><tr><th>weapon</th><th>n</th><th>vs typical</th></tr></thead><tbody>`+Object.entries(A.gear.tierEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+
+  `</tbody></table><table style="margin-top:10px"><thead><tr><th>brooch (+6 weapon only)</th><th>n</th><th>vs typical</th></tr></thead><tbody>`+Object.entries(A.gear.broochEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+`</tbody></table>`;
+ document.getElementById('gearProfile').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>avg ilvl</th><th>avg wpn</th><th>+7 or better</th><th>chrono</th></tr></thead><tbody>`+Object.entries(A.gear.classGearProfile).sort((a,b)=>b[1].pct7plus-a[1].pct7plus).map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td>${r.avgIlvl?r.avgIlvl.toFixed(1):'–'}</td><td>+${r.avgWEnch.toFixed(2)}</td><td>${Math.round(r.pct7plus*100)}%</td><td>${Math.round(r.pctChrono*100)}%</td></tr>`).join('')+`</tbody></table>`;
+ const TIERS=Object.keys(A.gear.tierEffect);
+ document.getElementById('classTier').innerHTML=`<table><thead><tr><th>class</th>${TIERS.map(t=>`<th>${t.replace(' weapon','')}</th>`).join('')}<th>+6 → +7</th><th>+6 → +8/9</th><th>% per ilvl</th></tr></thead><tbody>`+
+  Object.entries(A.gear.classByTier).sort((a,b)=>(b[1].ilvlSlope?b[1].ilvlSlope.perIlvl:0)-(a[1].ilvlSlope?a[1].ilvlSlope.perIlvl:0)).map(([c,r])=>{
+   const g=(a,b)=>r[a]&&r[b]?`<b>+${Math.round((r[b].med/r[a].med-1)*100)}%</b>`:'<span class="n">–</span>';
+   return `<tr><td><b>${c}</b></td>${TIERS.map(t=>r[t]?`<td>${pill(r[t].med)} <span class="n">${r[t].n}</span></td>`:'<td></td>').join('')}<td>${g('+6 weapon','+7 weapon')}</td><td>${g('+6 weapon','+8/+9 weapon')}</td><td><b>${r.ilvlSlope?(r.ilvlSlope.perIlvl*100).toFixed(1)+'%':'–'}</b> <span class="n">${r.ilvlSlope?r.ilvlSlope.n:''}</span></td></tr>`}).join('')+`</tbody></table>`;
+ document.getElementById('stdDesc').textContent=A.gear.stdBucket.desc;
+ const stdTabs=document.getElementById('stdTabs');
+ const stdSets=[['All dungeons',A.gear.stdBucket.classes,A.gear.stdBucket.n],...AREAS.map(a=>[a,A.gear.stdBucket.byArea[a],Object.values(A.gear.stdBucket.byArea[a]).reduce((s,r)=>s+r.n,0)])];
+ stdSets.forEach(([label,rows,n],i)=>{const b=document.createElement('button');b.role='tab';b.textContent=label;b.setAttribute('aria-selected',i===0);
+  b.onclick=()=>{[...stdTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('stdChart'),Object.entries(rows).map(r=>[r[0],{...r[1]}]),'avg','n / uniq');
+  document.getElementById('stdNote').textContent=`${n} samples wearing ${A.gear.stdBucket.desc}${label==='All dungeons'?', all five dungeons pooled':' in '+label}. Index is vs the boss median of all players, so a well-geared group sits above 1.00 on average — read the ordering and the gaps, not the absolute level.`};
+  stdTabs.appendChild(b)});
+ stdTabs.children[0].click();
 }
-const lenses=[
- {id:'raw',label:'All parses',rows:Object.entries(D.relIndex),key:'avg',nkey:'n / uniq',note:`Average across every parse. Counting each player once at their best parse instead: ${Object.entries(D.relIndex).sort((a,b)=>b[1].playerBestMed-a[1].playerBestMed).map(([c,r])=>c+' '+(r.playerBestMed>=1?'+':'−')+Math.round(Math.abs(r.playerBestMed-1)*100)+'%').join(' · ')}.`},
- {id:'kt',label:'Kill-time matched',rows:Object.entries(D.killTimeIndex).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:D.relIndex[c].players}]),key:'avg',nkey:'n / uniq',note:'Class average ÷ median of the same duration quartile on the same boss, weighted by sample count across all 15 bosses.'},
- {id:'gear',label:'Same gear',rows:Object.entries(D.gear.stdBucket.classes),key:'avg',nkey:'n / uniq',note:`Only players wearing ${D.gear.stdBucket.desc} (${D.gear.stdBucket.n} samples).`},
- {id:'top',label:'Top 10% of players',rows:Object.entries(D.relIndex).map(([c,r])=>[c,{avg:r.top10,n:r.n,players:r.players}]),key:'avg',nkey:'n / uniq',note:'Average index of the best 10% of samples per class — the ceiling, not the typical player.'}
-];
-const tabs=document.getElementById('lensTabs');
-lenses.forEach((L,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=L.label;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...tabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('lensChart'),L.rows.map(r=>[r[0],{...r[1]}]),L.key,L.nkey);document.getElementById('lensNote').textContent=L.note};tabs.appendChild(b)});
-tabs.children[0].click();
-// area tables
-const at=document.getElementById('areaTabs');
-function areaTable(a){const vs=c=>(D.relIndexByArea[a]&&D.relIndexByArea[a][c]?D.relIndexByArea[a][c].avg:-1);
- const rows=Object.entries(D.byArea[a]).sort((x,y)=>vs(y[0])-vs(x[0]));
- document.getElementById('areaTable').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>uniq</th><th>min</th><th>p25</th><th>median</th><th>avg</th><th>p75</th><th>p90</th><th>max</th><th>vs typical</th></tr></thead><tbody>`+
- rows.map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td class="n">${r.players}</td><td class="n">${fk(r.min)}</td><td class="n">${fk(r.p25)}</td><td><b>${fk(r.med)}</b></td><td>${fk(r.avg)}</td><td class="n">${fk(r.p75)}</td><td>${fk(r.p90)}</td><td>${fk(r.max)}</td><td>${pill(D.relIndexByArea[a][c]&&D.relIndexByArea[a][c].avg)}</td></tr>`).join('')+`</tbody></table>`}
-AREAS.forEach((a,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=a;b.setAttribute('aria-selected',i===0);b.onclick=()=>{[...at.children].forEach(x=>x.setAttribute('aria-selected',x===b));areaTable(a)};at.appendChild(b)});
-at.children[0].click();
-// kill time: pooled across dungeons, one tab per speed group
-const ktTabs=document.getElementById('ktTabs');
-let ktIdx=0;
-function ktBucket(i){ktIdx=i;const best=document.getElementById('ktBest').checked;const B=(best?D.killTimeGlobalBest:D.killTimeGlobal)[i];
- const rows=Object.entries(B.classes).sort((a,b)=>b[1].rel-a[1].rel);
- barChart(document.getElementById('ktChart'),rows.map(([c,v])=>[c,{avg:v.rel,n:v.n,players:''}]),'avg','kills');
- const tot=rows.reduce((s,r)=>s+r[1].n,0);
- const ns=rows.map(r=>r[1].n), lo=Math.min(...ns), hi=Math.max(...ns);
- const thin=lo<10?` Class samples here run from ${lo} to ${hi} — too few to separate the classes, so read the ordering as noise rather than a ranking.`:'';
- const mode=best?`Each player counted once at their best parse per boss. `:'';
- document.getElementById('ktNote').textContent=mode+`${tot.toLocaleString()} ${best?'entries':'parses'} in this tier across ${B.bosses.length} bosses, each measured against the other classes in the same tier on the same boss.`+thin;
- document.getElementById('ktRanges').innerHTML=`<table><thead><tr><th>boss</th><th>kills</th><th>kill times in this tier</th></tr></thead><tbody>`+
-  B.bosses.map(r=>`<tr><td>${r.boss.replace('Nightmare ','N. ')}</td><td class="n">${r.n}</td><td>${dur(r.lo)} – ${dur(r.hi)}</td></tr>`).join('')+`</tbody></table>`;
+
+// ---- patch selector ----
+const PM=D.patchMeta.filter(m=>m.parses>0);
+const DATES={};
+PM.forEach(m=>{DATES[m.id]=m.start?new Date(m.start).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'from launch'});
+const pbar=document.getElementById('patchbar');
+function setPatch(id){
+  ACTIVE=id;
+  A=(id==='all')?D:D.patches[id];
+  [...pbar.children].forEach(b=>b.setAttribute('aria-selected',String(b.dataset.id===id)));
+  const m=PM.find(x=>x.id===id);
+  const info=document.getElementById('patchinfo');
+  if(!m){
+    info.innerHTML=`<b>All data.</b> Every recorded kill from ${PM.map(x=>x.id).join(', ')} pooled together. Useful for sample size, but class balance changed between these patches \u2014 pick a single patch to read the standings cleanly.`;
+  }else{
+    const cls=m.classes.length?`<ul>${m.classes.map(c=>`<li><b>${c.cls}</b> \u2014 ${c.text}</li>`).join('')}</ul>`
+      :'<ul><li>No DPS-class changes in this patch.</li></ul>';
+    const con=m.content.length?`<ul>${m.content.map(t=>`<li>${t}</li>`).join('')}</ul>`:'';
+    info.innerHTML=`<b>${m.name}${m.current?' \u2014 current':''}.</b> ${m.summary}`+cls+
+      (con?`<div style="margin-top:6px;font-size:13px;color:var(--muted)">Encounter changes that move kill times:</div>${con}`:'');
+  }
+  render();
 }
-D.killTimeGlobal.forEach((B,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=B.label;b.setAttribute('aria-selected',i===0);
- b.onclick=()=>{[...ktTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));ktBucket(i)};ktTabs.appendChild(b)});
-document.getElementById('ktBest').onchange=()=>ktBucket(ktIdx);
-ktBucket(0);
-// per-boss detail
-const sel=document.getElementById('bossSel');
-const bossKeys=Object.keys(D.killTime).sort((a,b)=>D.killTime[b].n-D.killTime[a].n);
-bossKeys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${k.replace('Nightmare ','N. ')} (${D.killTime[k].n})`;sel.appendChild(o)});
-function kt(k){const K=D.killTime[k];document.getElementById('bossN').textContent=`${K.n} parses`;
- const present=CLS.filter(c=>K.buckets.some(b=>b[c]));
- document.getElementById('ktTable').innerHTML=`<table class="heat"><thead><tr><th>class</th>${K.labels.map((l,i)=>`<th>${l}<span class="n" style="display:block;font-weight:400">${K.counts?K.counts[i]+' kills':''}${K.ranges&&K.ranges[i]?' · '+dur(K.ranges[i][0])+'–'+dur(K.ranges[i][1]):''}</span></th>`).join('')}<th>all tiers</th></tr></thead><tbody>`+
- present.map(c=>{const vals=K.buckets.map(b=>b[c]);const have=vals.filter(Boolean);const avg=have.length?have.reduce((s,v)=>s+v.rel*v.n,0)/have.reduce((s,v)=>s+v.n,0):null;
-  return `<tr><td><b>${c}</b></td>${vals.map(v=>`<td title="${v?`${v.n} kills · avg ${fk(v.avg)} · best ${fk(v.max)}`:''}">${v?pill(v.rel)+` <span class="n">${v.n}</span>`:''}</td>`).join('')}<td>${pill(avg)}</td></tr>`}).join('')+`</tbody></table>`}
-sel.onchange=()=>kt(sel.value);kt(bossKeys[0]);
-// gear
-document.getElementById('gearCov').textContent=`${D.gear.coverage.withGear.toLocaleString()} of ${D.gear.coverage.of.toLocaleString()} (${Math.round(100*D.gear.coverage.withGear/D.gear.coverage.of)}%)`;
-document.getElementById('gearEffect').innerHTML=`<table><thead><tr><th>weapon</th><th>n</th><th>vs typical</th></tr></thead><tbody>`+Object.entries(D.gear.tierEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+
- `</tbody></table><table style="margin-top:10px"><thead><tr><th>brooch (+6 weapon only)</th><th>n</th><th>vs typical</th></tr></thead><tbody>`+Object.entries(D.gear.broochEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+`</tbody></table>`;
-document.getElementById('gearProfile').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>avg ilvl</th><th>avg wpn</th><th>+7 or better</th><th>chrono</th></tr></thead><tbody>`+Object.entries(D.gear.classGearProfile).sort((a,b)=>b[1].pct7plus-a[1].pct7plus).map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td>${r.avgIlvl?r.avgIlvl.toFixed(1):'–'}</td><td>+${r.avgWEnch.toFixed(2)}</td><td>${Math.round(r.pct7plus*100)}%</td><td>${Math.round(r.pctChrono*100)}%</td></tr>`).join('')+`</tbody></table>`;
-const TIERS=Object.keys(D.gear.tierEffect);
-document.getElementById('classTier').innerHTML=`<table><thead><tr><th>class</th>${TIERS.map(t=>`<th>${t.replace(' weapon','')}</th>`).join('')}<th>+6 → +7</th><th>+6 → +8/9</th><th>% per ilvl</th></tr></thead><tbody>`+
- Object.entries(D.gear.classByTier).sort((a,b)=>(b[1].ilvlSlope?b[1].ilvlSlope.perIlvl:0)-(a[1].ilvlSlope?a[1].ilvlSlope.perIlvl:0)).map(([c,r])=>{
-  const g=(a,b)=>r[a]&&r[b]?`<b>+${Math.round((r[b].med/r[a].med-1)*100)}%</b>`:'<span class="n">–</span>';
-  return `<tr><td><b>${c}</b></td>${TIERS.map(t=>r[t]?`<td>${pill(r[t].med)} <span class="n">${r[t].n}</span></td>`:'<td></td>').join('')}<td>${g('+6 weapon','+7 weapon')}</td><td>${g('+6 weapon','+8/+9 weapon')}</td><td><b>${r.ilvlSlope?(r.ilvlSlope.perIlvl*100).toFixed(1)+'%':'–'}</b> <span class="n">${r.ilvlSlope?r.ilvlSlope.n:''}</span></td></tr>`}).join('')+`</tbody></table>`;
-document.getElementById('stdDesc').textContent=D.gear.stdBucket.desc;
-const stdTabs=document.getElementById('stdTabs');
-const stdSets=[['All dungeons',D.gear.stdBucket.classes,D.gear.stdBucket.n],...AREAS.map(a=>[a,D.gear.stdBucket.byArea[a],Object.values(D.gear.stdBucket.byArea[a]).reduce((s,r)=>s+r.n,0)])];
-stdSets.forEach(([label,rows,n],i)=>{const b=document.createElement('button');b.role='tab';b.textContent=label;b.setAttribute('aria-selected',i===0);
- b.onclick=()=>{[...stdTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('stdChart'),Object.entries(rows).map(r=>[r[0],{...r[1]}]),'avg','n / uniq');
- document.getElementById('stdNote').textContent=`${n} samples wearing ${D.gear.stdBucket.desc}${label==='All dungeons'?', all five dungeons pooled':' in '+label}. Index is vs the boss median of all players, so a well-geared group sits above 1.00 on average — read the ordering and the gaps, not the absolute level.`};
- stdTabs.appendChild(b)});
-stdTabs.children[0].click();
+pbar.innerHTML=PM.map(m=>{
+  const chips=m.classes.map(c=>`<span class="chip ${c.dir}" title="${c.text.replace(/"/g,'&quot;')}">${c.cls}${c.dir==='pvp'?' (PvP)':''}</span>`).join('')||'<span class="chip">no class changes</span>';
+  return `<button class="patchbtn" role="tab" data-id="${m.id}" aria-selected="false">
+    <span class="pv">${m.name}${m.current?' <em>current</em>':''}</span>
+    <span class="pd">${DATES[m.id]}${m.end?' \u2013 '+new Date(m.end).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):' onward'}</span>
+    <span class="pn">${m.parses.toLocaleString()} parses \u00b7 ${m.kills.toLocaleString()} kills</span>
+    <span class="chips">${chips}</span></button>`}).join('')+
+ `<button class="patchbtn" role="tab" data-id="all" aria-selected="false">
+    <span class="pv">All data</span><span class="pd">every patch pooled</span>
+    <span class="pn">${D.dataset.five.toLocaleString()} parses \u00b7 ${D.dataset.encounters.toLocaleString()} kills</span>
+    <span class="chips"><span class="chip change">mixes balance changes</span></span></button>`;
+[...pbar.children].forEach(b=>b.onclick=()=>setPatch(b.dataset.id));
+setPatch((PM.find(m=>m.current)||PM[PM.length-1]||{id:'all'}).id);
 </script>
 """
 html=html.replace("__DATA__",DATA).replace("__D0__",d0).replace("__D1__",d1)
