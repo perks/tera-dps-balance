@@ -160,6 +160,27 @@ def build(S):
     out["killTimeGlobal"]=pooled(F)
     out["killTimeGlobalBest"]=pooled(FB)
     out["killTimeModes"]=dict(all=len(F),best=len(FB))
+    # ---------- movement metric ----------
+    # For comparing one patch against another: restricted to the fastest 20% of
+    # kills on each boss, and measured against players carrying the SAME weapon
+    # enchant on that boss. Everyone gears up between patches, so an ordinary
+    # boss-median baseline would read those upgrades as class changes; matching
+    # on enchant removes the shared drift.
+    fast=[]
+    for k in {(x["area"],x["boss"]) for x in F}:
+        xs=[x for x in F if (x["area"],x["boss"])==k]
+        cut=q([x["dur"] for x in xs],.20)
+        fast+=[x for x in xs if x["dur"]<=cut]
+    gm=collections.defaultdict(list)
+    for x in fast:
+        if x["wEnch"] is not None: gm[(x["area"],x["boss"],x["wEnch"])].append(x["dps"])
+    base={k:st.median(v) for k,v in gm.items() if len(v)>=5}
+    mv=collections.defaultdict(list)
+    for x in fast:
+        k=(x["area"],x["boss"],x["wEnch"])
+        if x["wEnch"] is not None and k in base: mv[x["cls"]].append(x["dps"]/base[k])
+    out["moveIndex"]={c:dict(n=len(v),rel=st.mean(v)) for c,v in mv.items() if len(v)>=30}
+    out["moveCoverage"]=dict(used=sum(len(v) for v in mv.values()),fastest20=len(fast))
     out["durByClass"]={c:dict(medDur=st.median([s["dur"] for s in F if s["cls"]==c])) for c in CLS}
     G=[s for s in F if s["hasGear"] and s["wEnch"] is not None]
     TIERS=["<=+5 weapon","+6 weapon","+7 weapon","+8/+9 weapon"]

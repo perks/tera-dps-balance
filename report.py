@@ -262,19 +262,17 @@ function render(){
 function moves(m){
   const i=PM.findIndex(x=>x.id===m.id); if(i<1) return '';
   const prev=PM[i-1], A1=D.patches[m.id], A0=D.patches[prev.id];
-  if(!A1||!A0) return '';
-  // measured on the fastest 20% of kills: those groups clear consistently, so
-  // the comparison reflects the class rather than how the run went
-  const TIER=2, t1=(A1.killTimeGlobal[TIER]||{}).classes||{}, t0=(A0.killTimeGlobal[TIER]||{}).classes||{};
+  if(!A1||!A0||!A1.moveIndex||!A0.moveIndex) return '';
+  const t1=A1.moveIndex, t0=A0.moveIndex;
   const chg=new Set(m.classes.filter(c=>c.dir!=='pvp').map(c=>c.cls));
   const d=Object.keys(t1).filter(c=>t0[c]&&t1[c].n>=50&&t0[c].n>=50)
     .map(c=>[c,(t1[c].rel-t0[c].rel)*100])
     .filter(x=>Math.abs(x[1])>=3).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,5);
-  const lab=`<span class="mlab">Movement vs ${prev.name}, fastest 20% of kills</span>`;
+  const lab=`<span class="mlab">Movement vs ${prev.name} \u00b7 fastest 20% of kills, gear held equal</span>`;
   if(!d.length) return `<div class="moves">${lab}<span class="cav">No class moved by more than 3 points.</span></div>`;
   return `<div class="moves">${lab}`+
-   d.map(([c,v])=>`<span class="mv ${v>0?'up':'down'}" title="${c} sits ${Math.abs(v).toFixed(1)} points ${v>0?'higher':'lower'} against the median player than in ${prev.name}, measured on the fastest 20% of kills">${c} ${v>0?'+':'\u2212'}${Math.abs(v).toFixed(0)}${chg.has(c)?'<sup>\u25cf</sup>':''}</span>`).join('')+
-   `<span class="cav">Measured on the fastest 20% of kills on each boss, where runs go to plan and the result reflects the class more than the circumstances. Figures are points of the vs-typical number, on a relative scale \u2014 one class climbing pushes the rest down.${d.some(([c])=>chg.has(c))?' \u25cf marks a class this patch changed directly.':''}</span></div>`;
+   d.map(([c,v])=>`<span class="mv ${v>0?'up':'down'}" title="${c}: ${Math.abs(v).toFixed(1)} points ${v>0?'higher':'lower'} than in ${prev.name}, against players carrying the same weapon enchant on the same boss">${c} ${v>0?'+':'\u2212'}${Math.abs(v).toFixed(0)}${chg.has(c)?'<sup>\u25cf</sup>':''}</span>`).join('')+
+   `<span class="cav">Everyone upgrades between patches, so each class is measured against players carrying the <b>same weapon enchant on the same boss</b> \u2014 shared gear progress cancels out and only a class's own change shows. Taken from the fastest 20% of kills, where runs go to plan. Figures are points on a relative scale, so one class climbing pushes the rest down.${d.some(([c])=>chg.has(c))?' \u25cf marks a class this patch changed directly.':''}</span></div>`;
 }
 
 // ---- patch selector ----
