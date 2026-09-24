@@ -505,6 +505,7 @@ function moves(m){
   const up=d.filter(x=>x[1]>=1.5), dn=d.filter(x=>x[1]<=-1.5);
   const flat=d.length-up.length-dn.length;
   const fmt=x=>`<b>${x[0]}</b> ${x[1]>0?'+':'\u2212'}${Math.abs(x[1]).toFixed(0)}`;
+  const list=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
   let sum;
   if(!up.length&&!dn.length){
     sum=`Every class held within 1.5 points of ${prev.name}; nothing moved measurably.`;
@@ -515,10 +516,10 @@ function moves(m){
     sum=bits.join(', ')+'. ';
     sum+=flat?`The other ${flat} held inside 1.5 points. `:'';
     const moved=d.filter(x=>Math.abs(x[1])>=3), hit=moved.filter(x=>chg.has(x[0]));
-    if(hit.length) sum+=`${hit.map(x=>x[0]).join(' and ')} ${hit.length===1?'was':'were'} changed directly in this patch.`;
+    if(hit.length) sum+=`${list(hit.map(x=>x[0]))} ${hit.length===1?'was':'were'} changed directly in this patch.`;
     else if(moved.length) sum+=`None of the classes that moved were changed directly in this patch, so the shift is gear and play rather than tuning.`;
   }
-  if(nocmp.length) sum+=` ${nocmp.join(' and ')} had too few fast kills in ${prev.name} to compare.`;
+  if(nocmp.length) sum+=` ${list(nocmp)} had too few fast kills in ${prev.name} to compare.`;
   return `<div class="moves">${lab}<span class="msum">${sum}</span>`+
    d.map(([c,v])=>`<span class="mv ${Math.abs(v)<1.5?'flat':(v>0?'up':'down')}" title="${c}: ${Math.abs(v).toFixed(1)} points ${v>0?'higher':'lower'} than in ${prev.name}, across the fastest 10% of kills on each boss (${t0[c].n} then ${t1[c].n} parses)">${c} ${v>0?'+':'\u2212'}${Math.abs(v).toFixed(0)}${chg.has(c)?'<sup>\u25cf</sup>':''}</span>`).join('')+
    `<span class="cav">Taken from the fastest 10% of kills on each boss \u2014 the end of the ladder where groups are geared and executing, which is the population a balance change is best judged on. Gear is not held constant, so some of the shift reflects upgrades as well as the patch. Every class with a comparable sample in both patches is listed, best move to worst; anything inside 1.5 points is shown flat because it is noise at this sample size. Figures are points on a relative scale, so one class climbing pushes the rest down.${d.some(([c])=>chg.has(c))?' \u25cf marks a class this patch changed directly.':''}</span></div>`;

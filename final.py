@@ -62,12 +62,30 @@ PATCHES=[
                dict(cls="Reaper",dir="pvp",text="PvP-only damage increase; no PvE change.")],
       content=["The old Hard modes were renamed Savage. New Hard modes added with 25% less enemy HP and attack.",
                "Dragon's Landing Normal now starts directly on Calamity Helghan; his attack-speed bonus cut from 30% to 23%."]),
- dict(id="v0.06",name="v0.06",start=datetime.datetime(2026,9,16,0,0),end=None,
+ dict(id="v0.06",name="v0.06",start=datetime.datetime(2026,9,16,0,0),end=datetime.datetime(2026,9,24,6,0),
       summary="Archer's rework finally works, and the new Hard modes were tuned down.",
       classes=[dict(cls="Archer",dir="buff",text="Fixed Find Weakness III's 25% damage bonus, which had not been applying.")],
       content=["Timescape Hard: all bosses -10% attack; HP cut by 35% (Eremes), 20% (Tempas), 10% (Hemera, Valona).",
                "Shadow Sanguinary Hard: all bosses -10% HP and attack; Imperator's shield 24M to 15.6M.",
                "Dragon's Landing: dive attack disabled, tank-circle hitboxes corrected."]),
+ # v0.07 went live during a 6.9 hour maintenance on 24 Sept: the last kill before
+ # it landed 05:28 UTC and the first after 12:23, so the boundary sits inside the
+ # gap. The patch notes carry a date but no time.
+ dict(id="v0.07",name="v0.07",start=datetime.datetime(2026,9,24,6,0),end=None,
+      summary="Changes across almost the whole roster, aimed at PvE damage and smoother rotations, and bosses lose most of their low-HP attack-speed gains.",
+      classes=[dict(cls="Slayer",dir="buff",text="+10% PvE damage. Dodge Roll cancels Knockdown Strike, Heart Thrust, Leaping Strike and Dash earlier, the lock after Backstab is shorter, and Swift Distant Blade's 9% attack speed is no longer overwritten by Adrenaline Rush."),
+               dict(cls="Gunner",dir="buff",text="Mana Missiles deals 10% more and charges 10% faster. Balder's Vengeance cooldown 100s to 80s, its iframe restored, and Resonance now granted even if the beam misses. Empowered Companion glyph 100% to 200%."),
+               dict(cls="Valkyrie",dir="buff",text="Base attack speed raised to 110. Every Titansbane wave restores 200 Ragnarok, so all five fill the bar. Backstab from behind is no longer treated as a frontal hit."),
+               dict(cls="Ninja",dir="buff",text="Bladestorm 15% faster, Attunement cooldown 60s to 50s, and Glyph of the Swift's attack speed now stacks with a Warrior's Traverse Cut."),
+               dict(cls="Sorcerer",dir="buff",text="Base attack speed raised to 110. Nerve Exhaustion, Burning Breath, Mana Volley and Time Gyre lock on at a fixed speed regardless of attack speed."),
+               dict(cls="Berserker",dir="buff",text="Skills charge 60% faster during Intimidation, Thunder Strike's charge damage reduction 50% to 60%, and charging now ignores ordinary knockdowns and staggers."),
+               dict(cls="Archer",dir="buff",text="Rapid Fire's seventh arrow resets Sequential Fire and chains into it. New Green and Blue Carving Penetrating Arrow glyphs multiply that skill's crit rate by 1.5 and 1.75."),
+               dict(cls="Warrior",dir="change",text="Rain of Blows' PvE bonus 200% to 100%, moved into Blade Draw at +25%, and Combative Strike's bonus 120% to 90%. The notes state overall damage is preserved. Crits from behind under Deadly Gamble now restore MP."),
+               dict(cls="Reaper",dir="nerf",text="PvE damage cut by 8%. Shadow Burst attacks 10% faster and MP costs drop across the kit.")],
+      content=["Shadow Sanguinary Hard: bosses no longer gain extra attack speed at low HP. Imperator's Unstable Mana gives 3% attack speed per stack instead of 5%, capped at 3 stacks rather than 99.",
+               "Timescape Hard: Tempas and Valona lose their extra attack speed and Hemera's drops 15% to 10%. Savage: 15% to 10% on Hemera, Tempas and Valona.",
+               "Valona Hard: 10% less HP, her turning swipes are blockable again, and the triple donut can be dodged with iframes.",
+               "Mournshard enchanting from +8 to +9 costs 16 Nightmare Catalysts per piece, down from 18."]),
 ]
 def patch_of(ts):
     if ts is None: return None
