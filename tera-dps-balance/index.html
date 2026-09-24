@@ -81,7 +81,18 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 .kpi .k{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .kpi .v{font-size:23px;font-weight:700;color:var(--ink);line-height:1.25;font-variant-numeric:tabular-nums}
 .kpi .s{font-size:12px;color:var(--ink2)}
-td.thin{opacity:.45}
+td.thin{opacity:.55}
+.disclaim{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--neg);
+ background:var(--neg-bg);border-radius:8px;padding:12px 14px;margin:0 0 15px;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.disclaim .ic{flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--neg);color:#fff;
+ font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.disclaim b{color:var(--neg)}
+.disclaim .sub{display:block;margin-top:3px;color:var(--ink2);font-size:12.5px}
+.tabs button .warn{margin-left:5px;color:var(--neg);font-weight:700}
+.tabs button[aria-selected="true"] .warn{color:inherit;opacity:.85}
+.lab .tagthin{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;font-size:10px;
+ font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--neg-bg);color:var(--neg);border:1px solid var(--neg)}
+td.thin .np{color:var(--neg)}
 .np{display:block;font-style:normal;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable.on{color:var(--bar)}
@@ -192,6 +203,7 @@ th.sortable.on{color:var(--bar)}
 <p class="lead">Damage enchanting on this server concentrates in the <b>weapon and the gloves</b>, so that pair says most of what there is to say about how far along someone's gear is. Every class here is compared only against the classes in <b>the same dungeon boss at the same two enchant levels</b> — a +6/+6 parse is never measured against a +8/+8 one. <span class="n" id="gmMeta"></span></p>
 <div class="panel">
 <div class="tabs" role="tablist" id="gmTabs"></div>
+<div id="gmWarn"></div>
 <div id="gmChart"></div>
 <p class="note" id="gmNote"></p>
 </div>
@@ -310,12 +322,32 @@ function render(){
    const rows=Object.entries(v.cl).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:r.players}]);
    barChart(document.getElementById('gmChart'),rows,'avg','n / uniq');
    const thin=Object.entries(v.cl).filter(([,r])=>r.thin).map(([c])=>c);
+   // Mark the thin classes on the bars themselves, so the caveat travels with
+   // the number instead of sitting in a paragraph underneath it.
+   document.querySelectorAll('#gmChart .lab').forEach(el=>{
+     const c=el.firstChild.textContent.trim();
+     const r=v.cl[c];
+     if(r&&r.thin) el.insertAdjacentHTML('beforeend',
+       `<span class="tagthin" title="${r.players} players">${r.players} player${r.players===1?'':'s'}</span>`);
+   });
+   const w=document.getElementById('gmWarn');
+   if(thin.length){
+    const most=thin.length===Object.keys(v.cl).length;
+    w.innerHTML=`<div class="disclaim"><div class="ic">!</div><div>`+
+      `<b>Small sample — read this as players, not classes.</b> `+
+      `${most?'Every class shown here rests':thin.length+' of '+Object.keys(v.cl).length+' classes shown here rest'} on fewer than ${GM.minPlayers} people`+
+      ` (${thin.map(c=>c+' '+v.cl[c].players).join(', ')}).`+
+      ` Few people have reached this level, so a figure moves with who those individuals are and how they play. Parse count does not fix it: the same handful of players parsing repeatedly still only measures that handful.`+
+      `<span class="sub">The +${GM.exact.length?GM.exact.reduce((a,b)=>a.players>b.players?a:b).level:6} tab is the one to trust for class balance.</span>`+
+      `</div></div>`;
+   } else w.innerHTML='';
    document.getElementById('gmNote').innerHTML=v.note+
-     (thin.length?` <b>Thin:</b> ${thin.join(', ')} rest on fewer than ${GM.minPlayers} players here, so treat them as those players rather than the class.`:'')+
      (skip?` <b>Not shown:</b> ${skip} — too few people at that level to say anything about a class.`:'');
   }
   gt.innerHTML='';
-  views.forEach((v,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=v.label;
+  views.forEach((v,i)=>{const b=document.createElement('button');b.role='tab';
+    const anyThin=Object.values(v.cl).some(r=>r.thin);
+    b.innerHTML=v.label+(anyThin?'<span class="warn" title="small sample">⚠</span>':'');
     b.setAttribute('aria-selected',String(i===DEF));
     b.onclick=()=>{[...gt.children].forEach(x=>x.setAttribute('aria-selected',String(x===b)));drawGM(v)};
     gt.appendChild(b)});
