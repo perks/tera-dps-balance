@@ -130,7 +130,7 @@ th.sortable.on{color:var(--bar)}
 </style>
 <div class="wrap">
 <div class="nav"><a href="../">Home</a><a href="../tera-dps-balance/" aria-current="page">DPS classes</a><a href="../slayer-build/">Slayer build data</a><a href="../slayer-guide/">Slayer guide</a></div>
-<div class="eyebrow">TERA Europe Classic+ · public leaderboard API · Sep 03 – Sep 23, 2026</div>
+<div class="eyebrow">TERA Europe Classic+ · public leaderboard API · <span id="eyeRange">Sep 03 – Sep 23, 2026</span></div>
 <h1>Classic+ DPS Balance</h1>
 <p class="sub">Pick a patch below — class balance changed between them, so pooling every patch together blurs the picture. Everything on this page then reflects that patch only. Data covers every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded, as are the 1.6% of kills that ran without any tank at all, where somebody is tanking on a DPS character.</p>
 <div class="patchbar" id="patchbar" role="tablist"></div>
@@ -242,8 +242,16 @@ const durLabel=l=>String(l).replace(/(\d+)\s*-\s*(\d+)s/g,(m,a,b)=>dur(+a)+'–'
 function lastKill(){const t=A.dataset&&A.dataset.dateTo;
   return t?new Date(t*1000).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'–'}
 function patchLabel(){const m=PM.find(x=>x.id===ACTIVE);return m?m.name+(m.current?' (current)':''):'all patches pooled'}
+// The header range has to describe the selected patch. Left static it claimed
+// the whole dataset's span while a single patch was showing.
+function rangeOf(ds){
+  if(!ds||!ds.dateFrom||!ds.dateTo) return '';
+  const f=d=>new Date(d*1000).toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+  return `${f(ds.dateFrom)} – ${f(ds.dateTo)}, ${new Date(ds.dateTo*1000).getFullYear()}`;
+}
 function render(){
  const ds=A.dataset;
+ { const el=document.getElementById('eyeRange'), r=rangeOf(ds); if(el&&r) el.textContent=r; }
  for(const id of ['lensTabs','areaTabs','ktTabs']) document.getElementById(id).innerHTML='';
  document.getElementById('bossSel').innerHTML='';
  const ktBestEl=document.getElementById('ktBest');
