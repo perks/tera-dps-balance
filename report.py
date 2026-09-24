@@ -86,6 +86,8 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 .kpi .k{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .kpi .v{font-size:23px;font-weight:700;color:var(--ink);line-height:1.25;font-variant-numeric:tabular-nums}
 .kpi .s{font-size:12px;color:var(--ink2)}
+td.thin{opacity:.45}
+.np{display:block;font-style:normal;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable.on{color:var(--bar)}
 .patchbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
@@ -191,6 +193,20 @@ th.sortable.on{color:var(--bar)}
 </section>
 
 <section>
+<h2>Gear-equalised comparison</h2>
+<p class="lead">Damage enchanting on this server concentrates in the <b>weapon and the gloves</b>, so that pair says most of what there is to say about how far along someone's gear is. Every class here is compared only against the classes in <b>the same dungeon boss at the same two enchant levels</b> — a +6/+6 parse is never measured against a +8/+8 one. <span class="n" id="gmMeta"></span></p>
+<div class="panel">
+<div class="tabs" role="tablist" id="gmTabs"></div>
+<div id="gmChart"></div>
+<p class="note" id="gmNote"></p>
+</div>
+<details><summary>Every enchant level side by side</summary><div class="inner">
+<div class="tscroll" id="gmTable"></div>
+<p class="legend">Each column compares classes only within that exact level, so columns are independent of one another and should not be read as a progression for one player. <b>n</b> is parses, <b>p</b> distinct players. A figure resting on fewer than <span id="gmMin"></span> players is greyed — at the top of the ladder a class is often one or two people, and that is individual skill rather than class balance.</p>
+</div></details>
+</section>
+
+<section>
 <h2>Reading guide</h2>
 <div class="panel">
 <ul class="tight">
@@ -280,6 +296,42 @@ function render(){
    return `<tr><td><b>${c}</b></td>${vals.map(v=>`<td title="${v?`${v.n} kills · avg ${fk(v.avg)} · best ${fk(v.max)}`:''}">${v?pill(v.rel)+` <span class="n">${v.n}</span>`:''}</td>`).join('')}<td>${pill(avg)}</td></tr>`}).join('')+`</tbody></table>`}
  sel.onchange=()=>kt(sel.value);kt(bossKeys[0]);
  // gear
+
+ // ---- gear-equalised ----
+ const GM=A.gearMatch;
+ if(GM&&GM.overall&&Object.keys(GM.overall).length){
+  document.getElementById('gmMeta').textContent=
+    `${GM.n.toLocaleString()} parses across ${GM.cells} boss+gear cells · enchanting runs to +12, but the highest recorded here is +${GM.maxWeapon} weapon and +${GM.maxGloves} gloves`;
+  document.getElementById('gmMin').textContent=GM.minPlayers;
+  const views=[{label:'All gear levels',cl:GM.overall,players:0,note:'Every parse, each one measured against its own boss and its own exact enchant pair, then pooled.'}]
+    .concat(GM.bands.map(b=>({label:b.label,cl:b.classes,players:b.players,note:b.note+` — ${b.n.toLocaleString()} parses from ${b.players} players.`})));
+  // open on the band the most players actually sit in, not whichever comes first
+  let DEF=0; views.forEach((v,i)=>{if(v.players>views[DEF].players) DEF=i});
+  const gt=document.getElementById('gmTabs');
+  function drawGM(v){
+   const rows=Object.entries(v.cl).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:r.players}]);
+   barChart(document.getElementById('gmChart'),rows,'avg','n / uniq');
+   const thin=Object.entries(v.cl).filter(([,r])=>r.thin).map(([c])=>c);
+   document.getElementById('gmNote').innerHTML=v.note+
+     (thin.length?` <b>Thin:</b> ${thin.join(', ')} rest on fewer than ${GM.minPlayers} players here, so treat them as those players rather than the class.`:'');
+  }
+  gt.innerHTML='';
+  views.forEach((v,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=v.label;
+    b.setAttribute('aria-selected',String(i===DEF));
+    b.onclick=()=>{[...gt.children].forEach(x=>x.setAttribute('aria-selected',String(x===b)));drawGM(v)};
+    gt.appendChild(b)});
+  drawGM(views[DEF]);
+
+  const lv=GM.exact;
+  const cls=[...new Set(lv.flatMap(e=>Object.keys(e.classes)))]
+    .sort((a,b)=>(GM.overall[b]?GM.overall[b].rel:0)-(GM.overall[a]?GM.overall[a].rel:0));
+  document.getElementById('gmTable').innerHTML=
+   `<table><thead><tr><th>class</th>`+lv.map(e=>`<th>${e.short} <span class="n">${e.players}p</span></th>`).join('')+`</tr></thead><tbody>`+
+   cls.map(c=>`<tr><td><b>${c}</b></td>`+lv.map(e=>{const r=e.classes[c];
+     if(!r) return '<td class="n">–</td>';
+     return `<td class="${r.thin?'thin':''}" title="${r.n} parses, ${r.players} players">${rel(r.rel)}<i class="np">${r.n}n / ${r.players}p</i></td>`}).join('')+`</tr>`).join('')+
+   `</tbody></table>`;
+ }
  // ---- distribution box plots ----
  const distSel=document.getElementById('distSel'), distBoss=document.getElementById('distBoss');
  function bossesFor(a){return Object.keys(A.byBoss).filter(k=>k.indexOf(a+" / ")===0)}

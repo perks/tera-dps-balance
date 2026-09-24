@@ -37,7 +37,7 @@ for f in os.listdir("enc"):
         wr=p["wRolls"] or []
         S.append(dict(uid=d["uid"],area=AREAS[m["areaId"]],boss=d["boss"],cls=p["cls"],dps=p["dps"],dur=d["dur"],psize=psize,
             pid=p["pid"] or ("anon:"+str(p["name"])),anon=p["pid"] is None,ts=m["encounterUnixEpoch"],crit=p["crit"],deaths=p["deaths"],
-            ilvl=p["ilvl"],wEnch=p["wEnchant"],brooch=p["brooch"],hasGear=p["hasGear"],
+            ilvl=p["ilvl"],wEnch=p["wEnchant"],gEnch=(p["armorEnchant"] or {}).get("gloves"),brooch=p["brooch"],hasGear=p["hasGear"],
             enr=sum(1 for r in wr if "enraged" in r),flat=sum(1 for r in wr if r.startswith("Increases damage by 6.0%")),
             behind=sum(1 for r in wr if "from behind" in r),armor=tuple(p["armorEnchant"].values())))
 print("samples",len(S),"drop",dict(drop),"| encounters not on the rankings board (kept):",offboard,
@@ -111,6 +111,66 @@ def build(S):
         return r
     out["relIndex"]=relidx(F)
     out["relIndexByArea"]={a:relidx([s for s in F if s["area"]==a]) for a in areas}
+    # ---------- gear-equalised comparison ----------
+    # Damage-relevant enchanting on this server concentrates in the weapon and the
+    # gloves, so that pair is a fair shorthand for how far along someone's gear is.
+    # A class is only ever compared inside one (boss, weapon+, gloves+) cell, which
+    # holds the boss and the gear level fixed at once. A cell needs several classes
+    # in it or its median would just be the class being measured.
+    #
+    # The enchant ladder runs past what anyone has reached: the highest recorded
+    # here is +10 on a weapon and +9 on gloves, and the top of the ladder is held
+    # by a handful of people, so bands above +6 rest on very few players however
+    # many parses they produce. Player counts travel with every figure for that
+    # reason, and a class resting on fewer than MINPLAYERS is marked thin.
+    GE=[s for s in F if s.get("wEnch") is not None and s.get("gEnch") is not None]
+    cells=collections.defaultdict(list)
+    for s2 in GE: cells[(s2["area"],s2["boss"],s2["wEnch"],s2["gEnch"])].append(s2)
+    MINCELL,MINCLS,MINN,MINPLAYERS=8,3,25,10
+    norm=[]
+    for (a2,b2,w,g),xs in cells.items():
+        if len(xs)<MINCELL or len({x["cls"] for x in xs})<MINCLS: continue
+        med=st.median([x["dps"] for x in xs])
+        if not med: continue
+        for x in xs: norm.append((x["cls"],x["pid"],x["dps"]/med,w,g))
+
+    def summarise(rows,minn=MINN,minpl=5):
+        cl={}
+        for c in CLS:
+            v=[(r,pid) for cc,pid,r,_,_ in rows if cc==c for r,pid in [(r,pid)]]
+            if len(v)<minn: continue
+            pl={pid for _,pid in v}
+            if len(pl)<minpl: continue
+            cl[c]=dict(n=len(v),players=len(pl),rel=st.mean([r for r,_ in v]),
+                       med=st.median([r for r,_ in v]),thin=len(pl)<MINPLAYERS)
+        return cl
+
+    BANDS=[("+3 and below","gear still coming together",lambda w,g:max(w,g)<=3),
+           ("+4 to +6","where almost everyone sits",lambda w,g:4<=max(w,g)<=6),
+           ("+7 and above","the top of the ladder, few players",lambda w,g:max(w,g)>=7)]
+    bands=[]
+    for label,note,test in BANDS:
+        rows=[r for r in norm if test(r[3],r[4])]
+        cl=summarise(rows)
+        if len(cl)<6: continue
+        bands.append(dict(label=label,note=note,n=len(rows),players=len({r[1] for r in rows}),
+                          thin=any(v["thin"] for v in cl.values()),classes=cl))
+
+    # Exact matched levels, which is the comparison in its strictest form.
+    exact=[]
+    for lv in sorted({w for _,_,_,w,g in norm if w==g}):
+        rows=[r for r in norm if r[3]==lv and r[4]==lv]
+        cl=summarise(rows,minn=25,minpl=3)
+        if len(rows)<150 or len(cl)<5: continue
+        exact.append(dict(level=lv,label="+%d weapon and gloves"%lv,short="+%d"%lv,
+                          n=len(rows),players=len({r[1] for r in rows}),
+                          thin=any(v["thin"] for v in cl.values()),classes=cl))
+
+    out["gearMatch"]=dict(minCell=MINCELL,minClasses=MINCLS,minPlayers=MINPLAYERS,
+        n=len(norm),cells=sum(1 for xs in cells.values() if len(xs)>=MINCELL and len({x["cls"] for x in xs})>=MINCLS),
+        maxWeapon=max((w for _,_,_,w,_ in norm),default=None),maxGloves=max((g for _,_,_,_,g in norm),default=None),
+        overall=summarise(norm),bands=bands,exact=exact)
+
     # ---------- kill-time tiers ----------
     # Kills on each boss are ranked fastest-first and cut into speed tiers: the top
     # 5%, 10%, 20%, 30%, 40% and 50% fastest, plus the bottom 50%. The top tiers are
