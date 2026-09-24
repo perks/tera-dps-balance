@@ -2,8 +2,9 @@ import json,re
 D=json.load(open("slayer2.json",encoding="utf-8"))
 IC=json.load(open("slayer_skill_icons.json",encoding="utf-8"))
 ICONS={k:"../icons/"+v.split("/")[-1].lower() for k,v in IC.items()}
-GLY={g["name"]:g for g in D["glyphs"]["list"]}
-CTX=dict(icons=ICONS,glyphs={k:dict(share=v["share"],icon=v.get("icon"),points=v.get("points"),skill=v.get("skill"),desc=v.get("desc")) for k,v in GLY.items()},
+# keyed by glyph id: display names are reused across different custom glyphs
+GLY={g["id"]:g for g in D["glyphs"]["list"]}
+CTX=dict(icons=ICONS,glyphs={str(k):dict(share=v["share"],icon=v.get("icon"),points=v.get("points"),skill=v.get("skill"),desc=v.get("desc"),label=v.get("label"),name=v.get("name"),vague=v.get("vague")) for k,v in GLY.items()},
          rotation=D["rotation"],crystals=D["crystals"],gearRolls=D["gearRolls"],runs=D["runs"],jewelry=D["runs"]["jewelry"],
          split=D["split"],dataset=D["dataset"])
 DATA=json.dumps(CTX,ensure_ascii=False).replace('"icons/','"../icons/')
@@ -236,10 +237,10 @@ const br=C.runs.brooch;
 document.getElementById('broochData').innerHTML=`<table><thead><tr><th>brooch</th><th>top 25 running it</th></tr></thead><tbody>`+
  br.map(b=>`<tr><td><b>${b.value}</b></td><td>${pc(b.share)}</td></tr>`).join('')+`</tbody></table>`;
 // glyph tiers by measured adoption
-const gl=Object.entries(C.glyphs).map(([n,g])=>({name:n,...g})).sort((a,b)=>b.share-a.share);
-const card=(g,cls)=>`<div class="gcard ${cls}">${g.icon?`<img src="${g.icon}" alt="">`:''}<div><div class="nm">${g.name}</div><div class="mt">${g.points?g.points+' pts · ':''}${pc(g.share)} of top 25${g.desc?' · '+g.desc:''}</div></div></div>`;
-const CORE=['Carving Knockdown Strike'], HIDE=['Keen Overpower'];
-const tier=g=>HIDE.includes(g.name)?null:(CORE.includes(g.name)||g.share>=0.9?'red':g.share>=0.35?'yel':g.share>=0.1?'blu':null);
+const gl=Object.entries(C.glyphs).map(([id,g])=>({id:+id,...g})).sort((a,b)=>b.share-a.share);
+const card=(g,cls)=>`<div class="gcard ${cls}">${g.icon?`<img src="${g.icon}" alt="">`:''}<div><div class="nm">${g.label}</div><div class="mt">${g.points?g.points+' pts · ':''}${pc(g.share)} of top 25${g.desc?' · '+(g.vague?'~ ':'')+g.desc:''}</div></div></div>`;
+const CORE=[23080], HIDE=[23058];   // Carving Knockdown Strike / Keen Overpower, by id
+const tier=g=>HIDE.includes(g.id)?null:(CORE.includes(g.id)||g.share>=0.9?'red':g.share>=0.35?'yel':g.share>=0.1?'blu':null);
 document.getElementById('gRed').innerHTML=gl.filter(g=>tier(g)==='red').map(g=>card(g,'red')).join('');
 document.getElementById('gYel').innerHTML=gl.filter(g=>tier(g)==='yel').map(g=>card(g,'yel')).join('');
 document.getElementById('gBlu').innerHTML=gl.filter(g=>tier(g)==='blu').map(g=>card(g,'blu')).join('');

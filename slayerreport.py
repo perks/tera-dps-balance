@@ -25,6 +25,9 @@ html = r"""<title>Slayer Build Data</title>
 .gitem img{width:24px;height:24px;border-radius:4px;background:var(--heat0)}
 .gitem .nm{font-size:14px;flex:1}
 .gitem .nm i{display:block;font-style:normal;font-size:11.5px;color:var(--muted)}
+.vg{color:var(--accent);font-weight:700}
+.gid{color:var(--muted);font-style:normal;font-size:11px;margin-left:6px;font-variant-numeric:tabular-nums}
+.gd{color:var(--ink2);font-size:13px}
 .gitem .pctn{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
 .gitem .pctn.hi{color:var(--pos)}
 .dmg{display:grid;grid-template-columns:34px 130px 1fr 50px;gap:8px 10px;align-items:center;font-size:14.5px}
@@ -83,7 +86,7 @@ tr.me td{background:var(--heat0)}
 <section>
 <h2>Glyphs</h2>
 <p class="lead">Grouped by the skill each glyph modifies, ordered by that skill's share of Slayer damage. Percentage is the share of shortlisted players running the glyph; <span id="glcov2"></span> of shortlist parses have a recorded glyph page.</p>
-<p class="note" style="margin:-6px 0 12px">Seven glyph display names are legacy and name a different skill than the one they modify — Boosted Overpower is a Whirlwind glyph, Energetic Triumphant Shout and Keen Overpower are Knockdown Strike glyphs, Powerlinked Overhand Strike is an Eviscerate glyph, Swift Combo Attack a Distant Blade one. Grouping follows each glyph's skill link in the game data, checked against the game's own skill icon map (40 of 40 glyphs verified, no mismatches).</p>
+<p class="note" style="margin:-6px 0 12px">This server runs custom glyphs, and its display names are not unique: twenty names each cover two or three <b>different</b> glyphs. Powerlinked Eviscerate, for one, is a glyph that buffs Measured Slice <b>and</b> a separate glyph that buffs Overhand Strike — both in near-universal use. Everything here is keyed on the glyph's own id, and where a name is shared the arrow shows which skill that particular glyph buffs, or the point cost separates them. Some names are also legacy and refer to a skill that no longer exists, so glyphs are grouped by the skill they are actually slotted on: Boosted Overpower sits on Whirlwind, Energetic Triumphant Shout and Keen Overpower on Knockdown Strike, Powerlinked Overhand Strike on Eviscerate. A <span class="vg">~</span> means the server publishes the effect but not its size.</p>
 <div class="skillgroups" id="glyphs"></div>
 <details><summary>Full glyph table, top third of the shortlist vs the rest</summary><div class="inner tscroll" id="gfull"></div></details>
 </section>
@@ -163,10 +166,10 @@ document.getElementById('jewelNote').textContent=`On Calamity Helghan the top th
 document.getElementById('glyphs').innerHTML=D.glyphsBySkill.filter(g=>g.glyphs.some(x=>x.share>=0.15)).map(g=>`
  <div class="skillgroup">
   <div class="skillhead">${g.icon?`<img src="${g.icon}" alt="">`:''}<b>${g.skill}</b><span>${g.share!=null?f1(g.share)+'% of damage':''}</span></div>
-  ${g.glyphs.filter(x=>x.share>=0.15).map(x=>`<div class="gitem">${x.icon?`<img src="${x.icon}" alt="">`:''}<div class="nm">${x.name}${x.points?`<i>${x.points} points${x.desc?' · '+x.desc:''}</i>`:''}</div><div class="pctn ${x.share>=0.9?'hi':''}">${pc(x.share)}</div></div>`).join('')}
+  ${g.glyphs.filter(x=>x.share>=0.15).map(x=>`<div class="gitem">${x.icon?`<img src="${x.icon}" alt="">`:''}<div class="nm">${x.label}${x.points?`<i>${x.points} points${x.desc?' · '+(x.vague?'<span class="vg">~</span> ':'')+x.desc:''}</i>`:''}</div><div class="pctn ${x.share>=0.9?'hi':''}">${pc(x.share)}</div></div>`).join('')}
  </div>`).join('');
-document.getElementById('gfull').innerHTML=`<table><thead><tr><th>glyph</th><th>skill</th><th>points</th><th>shortlist</th><th>top third</th><th>rest</th></tr></thead><tbody>`+
- D.glyphs.list.map(g=>`<tr><td><b>${g.name}</b></td><td class="n">${g.skill||''}</td><td class="n">${g.points||''}</td><td>${pc(g.share)}</td><td class="n">${pc(g.top)}</td><td class="n">${pc(g.rest)}</td></tr>`).join('')+
+document.getElementById('gfull').innerHTML=`<table><thead><tr><th>glyph</th><th>slotted on</th><th>effect</th><th>points</th><th>shortlist</th><th>top third</th><th>rest</th></tr></thead><tbody>`+
+ D.glyphs.list.map(g=>`<tr><td><b>${g.label}</b><i class="gid">#${g.id}</i></td><td class="n">${g.skill||''}</td><td class="gd">${g.vague?'<span class="vg">~</span> ':''}${g.desc||''}</td><td class="n">${g.points||''}</td><td>${pc(g.share)}</td><td class="n">${pc(g.top)}</td><td class="n">${pc(g.rest)}</td></tr>`).join('')+
  `</tbody></table><p class="note">Top third n=${D.glyphs.nTop}, rest n=${D.glyphs.nRest}.</p>`;
 // rotation
 const icons={}; D.glyphsBySkill.forEach(g=>{if(g.icon)icons[g.skill]=g.icon});

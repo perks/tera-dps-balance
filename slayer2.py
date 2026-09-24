@@ -26,10 +26,18 @@ def fam(n):
         if k in n: return k
     return "Other"
 # ---------- load every parse ----------
-R=[]
+# This server runs custom glyphs and reuses display names across glyph ids that
+# do entirely different things ("Powerlinked Eviscerate" is one glyph that buffs
+# Measured Slice and a different one that buffs Overhand Strike, both in heavy
+# use). The id is the only safe key, and the parse payload is the live source of
+# truth for a glyph's name, host skill and description.
+R=[]; GMETA={}
 for f in os.listdir("slayer"):
     d=json.load(open("slayer/"+f))
     for s in d["slayers"]:
+        for g in (s.get("glyphs") or []):
+            GMETA.setdefault(g["id"],dict(id=g["id"],name=g["name"],skill=g.get("skill"),
+                                          points=g.get("points"),desc=g.get("desc") or ""))
         if (s["dps"] or 0)<50000 or not s["pid"]: continue
         eq=s["equipment"] or {}; stats=s["stats"] or {}
         w=eq.get("weapon") or {}
@@ -58,7 +66,7 @@ for f in os.listdir("slayer"):
             nTitan=sum(1 for x in js if x=="Titan"),nMonarch=sum(1 for x in js if x=="Monarch"),nJewel=sum(1 for x in js if x),
             brooch=(eq.get("brooch") or {}).get("name"),belt=(eq.get("belt") or {}).get("name"),
             slotRoll=slotRoll,rolls=dict(rolls),cry=cry,armor=armor,
-            glyphs=tuple(sorted({g["name"] for g in s["glyphs"] if g["enabled"]})),hasGlyphs=bool(s["glyphs"]),
+            glyphs=tuple(sorted({g["id"] for g in s["glyphs"] if g["enabled"]})),hasGlyphs=bool(s["glyphs"]),
             skills=s["skills"],cpm=60*sum(x["hits"] or 0 for x in s["skills"])/max(1,d["dur"]) if s["skills"] else None,
             hasGear=bool(eq)))
 # ---------- per-boss top-25 shortlist (best parse per player) ----------
@@ -172,7 +180,7 @@ gc=collections.Counter()
 for r in GL: gc.update(r["glyphs"])
 topG=[r for r in GL if r["pctile"]<=0.34]; restG=[r for r in GL if r["pctile"]>0.34]
 out["glyphs"]={"n":len(GL),"nTop":len(topG),"nRest":len(restG),"list":[
-  dict(name=g,share=c/len(GL),top=sum(1 for r in topG if g in r["glyphs"])/max(1,len(topG)),
+  dict(id=g,share=c/len(GL),top=sum(1 for r in topG if g in r["glyphs"])/max(1,len(topG)),
        rest=sum(1 for r in restG if g in r["glyphs"])/max(1,len(restG)))
   for g,c in gc.most_common() if c>=3]}
 # ---------- rotation reference ----------
@@ -193,25 +201,72 @@ except Exception: BASE=[]
 try: SICON=json.load(open("slayer_skill_icons.json",encoding="utf-8"))
 except Exception: SICON={}
 def skill_of(name,api):
-    # the API's skillName is authoritative; glyph display names are legacy and
-    # do not reliably match the skill they modify (e.g. "Energetic Triumphant
-    # Shout" is a Knockdown Strike glyph, "Boosted Overpower" a Whirlwind one).
+    # The host skill comes from the parse payload's skillName and is the slot the
+    # glyph occupies. It is not always what the glyph buffs, and it is not always
+    # what the glyph is named after: "Powerlinked Overhand Strike" sits on
+    # Eviscerate, "Energetic Triumphant Shout" on Knockdown Strike.
     if api: return api
     for b in BASE:
         if name==b or name.endswith(" "+b): return b
     return None
+
+def ico(path,pre="icons/"):
+    return (pre+path.split("/")[-1].lower()) if path else None
+
+# The catalogue only supplies artwork; everything factual comes from the live
+# payload. Icons are shared by every glyph of the same family, so an id the
+# catalogue has not caught up with can borrow its namesake's icon.
+icon_by_id={}; icon_by_name={}
 for gid,v in cat.items():
-    n=v.get("name")
-    if not n: continue
-    cur=meta.get(n)
-    if not cur or (v.get("points") or 0)>(cur.get("points") or 0):
-        sk2=skill_of(n,v.get("skill"))
-        meta[n]=dict(skill=sk2,points=v.get("points"),
-            icon=("icons/"+v["icon"].split("/")[-1].lower()) if v.get("icon") else None,
-            skillIcon=("icons/"+v["skillIcon"].split("/")[-1].lower()) if v.get("skillIcon") else (("icons/"+SICON[sk2].split("/")[-1].lower()) if sk2 in SICON else None),
-            desc=re.sub(r"<[^>]+>","",v.get("desc") or "").replace("$BR"," ").strip(),
-            skillOrder=v.get("skillOrder") or 0,glyphOrder=v.get("glyphOrder") or 0)
-for g in out["glyphs"]["list"]: g.update(meta.get(g["name"],{}))
+    e=dict(icon=ico(v.get("icon")),skillIcon=ico(v.get("skillIcon")),
+           skillOrder=v.get("skillOrder") or 0,glyphOrder=v.get("glyphOrder") or 0)
+    icon_by_id[int(gid)]=e
+    if v.get("name"): icon_by_name.setdefault(v["name"],e)
+
+def clean(desc):
+    # The server leaves $value/$prob unresolved on its older glyph entries and
+    # publishes no magnitude for them anywhere, so state the effect and let the
+    # page mark the number as unpublished rather than printing a placeholder.
+    d=desc
+    vague=("$value" in d) or ("$prob" in d)
+    d=re.sub(r"\s*by \$value","",d)
+    d=re.sub(r"\$prob chance","Chance",d)
+    d=re.sub(r"\s*\$value\s*"," ",d)
+    d=re.sub(r"\s{2,}"," ",d).strip()
+    if d[:1].islower(): d=d[0].upper()+d[1:]
+    return d,vague
+
+def target_of(desc):
+    # Several glyphs buff a skill other than the one they sit on. That target is
+    # what actually separates two glyphs sharing a display name, so pull it out.
+    m=re.search(r"(?:damage|skill damage) of ([A-Z][A-Za-z' ]+?) by",desc) or       re.search(r"[Ss]peeds casting of ([A-Z][A-Za-z' ]+?) by",desc) or       re.search(r"increases skill damage of ([A-Z][A-Za-z' ]+?) by",desc)
+    return m.group(1).strip() if m else None
+
+for g in out["glyphs"]["list"]:
+    m=GMETA.get(g["id"],{})
+    sk=skill_of(m.get("name") or "",m.get("skill"))
+    art=icon_by_id.get(g["id"]) or icon_by_name.get(m.get("name")) or {}
+    desc=re.sub(r"<[^>]+>","",m.get("desc") or "").replace("$BR"," ").strip()
+    desc,vague=clean(desc)
+    g.update(name=m.get("name"),skill=sk,points=m.get("points"),
+        desc=desc,vague=vague,target=target_of(desc),
+        icon=art.get("icon"),
+        skillIcon=art.get("skillIcon") or ico(SICON.get(sk)),
+        skillOrder=art.get("skillOrder") or 0,glyphOrder=art.get("glyphOrder") or g["id"])
+
+# Display names are not unique. Where one name covers several live glyphs, label
+# each by what it actually does so the two are told apart on the page.
+bycount=collections.Counter(g["name"] for g in out["glyphs"]["list"])
+for g in out["glyphs"]["list"]:
+    g["dupe"]=bycount[g["name"]]>1
+    if not g["dupe"]: g["label"]=g["name"]
+    elif g.get("target"): g["label"]=g["name"]+" → "+g["target"]
+    else: g["label"]=g["name"]+" ("+str(g["points"])+" pt)"
+# Where a name still covers several glyphs after that, the point cost is the
+# only thing separating them, so make sure it is always on the label.
+lbl=collections.Counter(g["label"] for g in out["glyphs"]["list"])
+for g in out["glyphs"]["list"]:
+    if lbl[g["label"]]>1: g["label"]+=" ("+str(g["points"])+" pt)"
 # group glyphs by skill, ordered by that skill's damage share
 dmgshare={r["name"]:r["share"] for r in out["rotation"]}
 groups=collections.defaultdict(list)
@@ -232,5 +287,5 @@ for k in ("top","mid","bottom"):
     p=out["split"][k]; print(f"  {k:7} n{p['n']:3} dps {p['dps']/1000:.0f}k cpm {p['cpm']:.1f} crit {p['crit']:.1f} ilvl {p['ilvl']} power {p['power']} cf {p['critFactor']} atk {p['attack']} titan {p['titan'] and round(p['titan'],2)} dur {p['dur']:.0f}")
 print("\ngear split:"); [print("  ",k,{k2:(round(v2,2) if isinstance(v2,float) else v2) for k2,v2 in v.items()}) for k,v in out["gearSplit"].items()]
 print("\nglyphs (n=%d, top=%d, rest=%d):"%(out["glyphs"]["n"],out["glyphs"]["nTop"],out["glyphs"]["nRest"]))
-for g in out["glyphs"]["list"][:20]: print(f"  {g['name']:34} all {g['share']:.2f} top {g['top']:.2f} rest {g['rest']:.2f} gap {g['top']-g['rest']:+.2f}")
+for g in out["glyphs"]["list"][:20]: print(f"  {g['id']} {g['label']:52} on {str(g['skill']):18} all {g['share']:.2f} top {g['top']:.2f} rest {g['rest']:.2f}")
 print("\nrotation:"); [print(f"  {r['name']:20} share {r['share']:5.1f}% cpm {r['cpm']:5.1f} crit {r['crit']:5.1f}%") for r in out["rotation"]]

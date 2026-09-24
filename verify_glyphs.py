@@ -1,68 +1,78 @@
-"""Verify every glyph's skill link independently of the field we group by.
+"""Check the Slayer glyph data against the raw parses. Exits non-zero on a fault.
 
-The leaderboard API gives each glyph a `skillName`. Glyph *display names* are
-legacy and often name a different skill than the one they modify, so grouping
-by name is wrong. This checks the API's skillName against the game's own
-skillNameToIcon map: a glyph's skillIcon must be the icon of the skill it
-claims. Run after refreshing glyph_catalogue.json.
+The failure this exists to catch: this server runs custom glyphs and reuses
+display names across glyph ids that do entirely different things. Anything that
+groups or counts glyphs by name silently merges them, which drops glyphs from
+the page and shows the wrong description for the ones that survive.
 
-Usage: python verify_glyphs.py [path-to-skills-data.json]
-  skills data: GET /api/leaderboard/skills-data?locale=en
+    python verify_glyphs.py
 """
-import json,re,collections,os,sys,urllib.request
+import json,glob,collections,sys,os
 
-SKILLS = sys.argv[1] if len(sys.argv) > 1 else "skills-data.json"
-if not os.path.exists(SKILLS):
-    print("fetching skills-data (~21MB) ...")
-    req = urllib.request.Request(
-        "https://tera-europe-classic.com/api/leaderboard/skills-data?locale=en",
-        headers={"User-Agent": "curl/8.0"})
-    open(SKILLS, "wb").write(urllib.request.urlopen(req, timeout=300).read())
+live={}; use=collections.Counter(); parses=0
+for f in glob.glob("slayer/*.json"):
+    d=json.load(open(f,encoding="utf-8"))
+    for p in d["slayers"]:
+        gl=p.get("glyphs") or []
+        if gl: parses+=1
+        for g in gl:
+            live.setdefault(g["id"],g)
+            if g.get("enabled"): use[g["id"]]+=1
+print(f"{len(live)} glyph ids across {parses} glyph-bearing parses\n")
 
-d = json.load(open(SKILLS, encoding="utf-8"))
-ROM = re.compile(r"\s+(?:[IVXL]+)$")
-icon2skill = collections.defaultdict(set)
-for name, m in d["skillNameToIcon"].items():
-    ic = m.get("Slayer")
-    if ic:
-        icon2skill[ic.split("/")[-1].lower()].add(ROM.sub("", name).strip())
+fail=[]
 
-cat = json.load(open("glyph_catalogue.json", encoding="utf-8"))
-used = collections.Counter()
-for f in os.listdir("slayer"):
-    for s in json.load(open("slayer/" + f))["slayers"]:
-        for g in s["glyphs"]:
-            if g["enabled"]:
-                used[g["name"]] += 1
+# 1. names are not unique, so nothing downstream may key on them
+byname=collections.defaultdict(set)
+for gid,g in live.items(): byname[g["name"]].add(gid)
+dupes={n:ids for n,ids in byname.items() if len(ids)>1}
+print(f"[1] display names covering more than one glyph id: {len(dupes)} "
+      f"({sum(len(v) for v in dupes.values())} of {len(live)} ids)")
+both=[(n,ids) for n,ids in dupes.items() if sum(use[i]>0 for i in ids)>1]
+for n,ids in sorted(both):
+    print(f"    both in use: {n}")
+    for i in sorted(ids):
+        if use[i]: print(f"      #{i} used {use[i]:5}  -> {live[i]['desc']}")
 
-seen, bad, unknown, ok = set(), [], [], 0
-for v in cat.values():
-    n, api = v.get("name"), v.get("skill")
-    if not n or n not in used or n in seen:
-        continue
-    seen.add(n)
-    truth = icon2skill.get((v.get("skillIcon") or "").split("/")[-1].lower(), set())
-    if not truth:
-        unknown.append((n, api))
-    elif api in truth:
-        ok += 1
-    else:
-        bad.append((n, api, sorted(truth)))
+# 2. every glyph that made the page must be present, by id, exactly once
+out=json.load(open("slayer2.json",encoding="utf-8"))
+L=out["glyphs"]["list"]
+ids=[g["id"] for g in L]
+if len(ids)!=len(set(ids)): fail.append("slayer2.json lists a glyph id twice")
+print(f"\n[2] glyphs on the page: {len(L)}, all distinct ids: {len(ids)==len(set(ids))}")
 
-print(f"{ok} verified, {len(bad)} mismatched, {len(unknown)} unresolved "
-      f"(of {len(seen)} glyphs in use)")
-for n, api, truth in bad:
-    print(f"  MISMATCH {n}: API says {api}, icon says {', '.join(truth)}")
-for n, api in unknown:
-    print(f"  UNRESOLVED {n}: API says {api}, no icon match")
+# 3. name, host skill and description must match the live payload for that id
+bad=0
+for g in L:
+    src=live.get(g["id"])
+    if not src: fail.append(f"#{g['id']} on the page is not in the parse data"); continue
+    if g["name"]!=src["name"]:
+        fail.append(f"#{g['id']} name '{g['name']}' != live '{src['name']}'"); bad+=1
+    if g.get("skill")!=src.get("skill"):
+        fail.append(f"#{g['id']} host '{g.get('skill')}' != live '{src.get('skill')}'"); bad+=1
+print(f"[3] name and host skill match the live payload for all {len(L)} glyphs: {bad==0}")
 
-mismatched_names = [n for n in seen
-                    if (lambda g: g and not n.endswith(" " + (g or "")))(
-                        next((v.get("skill") for v in cat.values()
-                              if v.get("name") == n), None))]
-if mismatched_names:
-    print("\nGlyphs whose display name does not match the skill they modify:")
-    for n in sorted(mismatched_names):
-        sk = next(v.get("skill") for v in cat.values() if v.get("name") == n)
-        print(f"  {n:34} -> {sk}")
-raise SystemExit(1 if bad else 0)
+# 4. labels must be unique, or the page shows two rows a reader cannot tell apart
+lab=collections.Counter(g["label"] for g in L)
+clash=[k for k,v in lab.items() if v>1]
+print(f"[4] every displayed label is unique: {not clash}")
+for c in clash: fail.append(f"label '{c}' is shown for {lab[c]} different glyphs")
+
+# 5. no unresolved server placeholder may reach the page
+ph=[g["id"] for g in L if "$" in (g.get("desc") or "")]
+print(f"[5] no $value/$prob placeholder text on the page: {not ph}")
+for i in ph: fail.append(f"#{i} still shows a raw placeholder")
+
+# 6. the heavily-used glyphs must all be on the page
+missing=[(i,c) for i,c in use.most_common() if c>=200 and i not in set(ids)]
+print(f"[6] every glyph used 200+ times is on the page: {not missing}")
+for i,c in missing: fail.append(f"#{i} ({live[i]['name']}) used {c} times but absent")
+
+# 7. artwork
+noicon=[g["id"] for g in L if not g.get("icon")]
+print(f"[7] every glyph resolved an icon: {not noicon}")
+for i in noicon: fail.append(f"#{i} has no icon")
+
+if fail:
+    print("\nFAILED:"); [print("  -",m) for m in fail]; sys.exit(1)
+print("\nall checks passed")
