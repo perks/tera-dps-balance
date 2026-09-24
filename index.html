@@ -81,7 +81,18 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 .kpi .k{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .kpi .v{font-size:23px;font-weight:700;color:var(--ink);line-height:1.25;font-variant-numeric:tabular-nums}
 .kpi .s{font-size:12px;color:var(--ink2)}
-td.thin{opacity:.45}
+td.thin{opacity:.55}
+.disclaim{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--neg);
+ background:var(--neg-bg);border-radius:8px;padding:12px 14px;margin:0 0 15px;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.disclaim .ic{flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--neg);color:#fff;
+ font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.disclaim b{color:var(--neg)}
+.disclaim .sub{display:block;margin-top:3px;color:var(--ink2);font-size:12.5px}
+.tabs button .warn{margin-left:5px;color:var(--neg);font-weight:700}
+.tabs button[aria-selected="true"] .warn{color:inherit;opacity:.85}
+.lab .tagthin{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;font-size:10px;
+ font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--neg-bg);color:var(--neg);border:1px solid var(--neg)}
+td.thin .np{color:var(--neg)}
 .np{display:block;font-style:normal;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable.on{color:var(--bar)}
@@ -129,12 +140,12 @@ th.sortable.on{color:var(--bar)}
 .card .go{color:var(--bar);font-weight:600;font-size:14px;margin-top:12px;display:inline-block}
 </style>
 <div class="wrap">
-<div class="eyebrow">TERA Europe Classic+ · public leaderboard API · Sep 03 – Sep 23, 2026</div>
+<div class="eyebrow">TERA Europe Classic+ · public leaderboard API · Sep 16 – Sep 23, 2026</div>
 <div class="hero">
 <h1>Classic+ Data</h1>
 <p class="sub">Analysis built from the public leaderboard API, covering the five endgame dungeons: Timescape (Hard and Savage), Shadow Sanguinary (Hard and Savage) and Dragon's Landing.</p>
 </div>
-<div class="cards"><a class="card" href="tera-dps-balance/"><h3>DPS class balance</h3><p>Every DPS player in 12,844 recorded 5-man kills of Timescape, Shadow Sanguinary and Dragon's Landing. Raw, kill-time-matched and gear-matched comparisons across all nine DPS classes.</p><div class="stats"><div><b>37,570</b>parses</div><div><b>1,544</b>named players</div><div><b>9</b>classes</div></div><span class="go">Open &rarr;</span></a><a class="card" href="slayer-build/"><h3>Slayer build data</h3><p>What the top 25 Slayers on each endgame boss actually wear: rolls, crystals, jewelry lines and glyph adoption, measured from their best parses.</p><div class="stats"><div><b>52</b>players</div><div><b>219</b>parses</div><div><b>15</b>boss lists</div></div><span class="go">Open &rarr;</span></a><a class="card" href="slayer-guide/"><h3>Slayer guide</h3><p>How to play the class: gearing targets, glyph tiers, the opener, rotation priority, repositioning and defensives.</p><div class="stats"><div><b>PvE</b>focus</div><div><b>0.04</b>patch</div><div><b>Guide</b>format</div></div><span class="go">Open &rarr;</span></a></div>
+<div class="cards"><a class="card" href="tera-dps-balance/"><h3>DPS class balance</h3><p>Every DPS player in 7,483 recorded 5-man kills of Timescape, Shadow Sanguinary and Dragon's Landing. Raw, kill-time-matched and gear-matched comparisons across all nine DPS classes.</p><div class="stats"><div><b>21,819</b>parses</div><div><b>1,259</b>named players</div><div><b>9</b>classes</div></div><span class="go">Open &rarr;</span></a><a class="card" href="slayer-build/"><h3>Slayer build data</h3><p>What the top 25 Slayers on each endgame boss actually wear: rolls, crystals, jewelry lines and glyph adoption, measured from their best parses.</p><div class="stats"><div><b>52</b>players</div><div><b>219</b>parses</div><div><b>15</b>boss lists</div></div><span class="go">Open &rarr;</span></a><a class="card" href="slayer-guide/"><h3>Slayer guide</h3><p>How to play the class: gearing targets, glyph tiers, the opener, rotation priority, repositioning and defensives.</p><div class="stats"><div><b>PvE</b>focus</div><div><b>0.04</b>patch</div><div><b>Guide</b>format</div></div><span class="go">Open &rarr;</span></a></div>
 <p class="note" style="margin-top:22px">Data is a snapshot, not live. Anonymous players are included in aggregate statistics but cannot be de-duplicated, so player counts are lower bounds.</p>
 </div>
 </body></html>

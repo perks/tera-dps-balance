@@ -137,7 +137,7 @@ th.sortable.on{color:var(--bar)}
 <div class="nav"><a href="../">Home</a><a href="../tera-dps-balance/" aria-current="page">DPS classes</a><a href="../slayer-build/">Slayer build data</a><a href="../slayer-guide/">Slayer guide</a></div>
 <div class="eyebrow">TERA Europe Classic+ · public leaderboard API · <span id="eyeRange">__D0__ – __D1__</span></div>
 <h1>Classic+ DPS Balance</h1>
-<p class="sub">Pick a patch below — class balance changed between them, so pooling every patch together blurs the picture. Everything on this page then reflects that patch only. Data covers every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded, as are the 1.6% of kills that ran without any tank at all, where somebody is tanking on a DPS character.</p>
+<p class="sub"><span id="patchLead"></span> Data covers every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded, as are the 1.6% of kills that ran without any tank at all, where somebody is tanking on a DPS character.</p>
 <div class="patchbar" id="patchbar" role="tablist"></div>
 <div class="patchinfo" id="patchinfo"></div>
 <div class="tiles" id="tiles"></div>
@@ -256,6 +256,12 @@ function rangeOf(ds){
 }
 function render(){
  const ds=A.dataset;
+ { // the page reports the live patch; wording depends on how many are published
+   const el=document.getElementById('patchLead');
+   if(el) el.innerHTML=PM.length>1
+    ? 'Pick a patch below — class balance changed between them, so pooling them blurs the picture. Everything on this page then reflects that patch only.'
+    : `Everything on this page is <b>${(PM[0]||{}).name||'the current patch'}</b>, the patch now live. Earlier patches are not reported: balance changed between them, so their numbers describe a game nobody is playing. New patches appear here as they land.`;
+ }
  { const el=document.getElementById('eyeRange'), r=rangeOf(ds); if(el&&r) el.textContent=r; }
  for(const id of ['lensTabs','areaTabs','ktTabs']) document.getElementById(id).innerHTML='';
  document.getElementById('bossSel').innerHTML='';
@@ -431,8 +437,8 @@ function render(){
 
 // ---- measured movement against the previous patch ----
 function moves(m){
-  const i=PM.findIndex(x=>x.id===m.id); if(i<1) return '';
-  const prev=PM[i-1], A1=D.patches[m.id], A0=D.patches[prev.id];
+  if(!m.prev) return '';
+  const prev={id:m.prev,name:m.prevName||m.prev}, A1=D.patches[m.id], A0=D.patches[m.prev];
   if(!A1||!A0||!A1.moveIndex||!A0.moveIndex) return '';
   const t1=A1.moveIndex, t0=A0.moveIndex;
   const chg=new Set(m.classes.filter(c=>c.dir!=='pvp').map(c=>c.cls));
@@ -475,10 +481,10 @@ pbar.innerHTML=PM.map(m=>{
     <span class="pd">${DATES[m.id]}${m.end?' \u2013 '+new Date(m.end).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):' onward'}</span>
     <span class="pn">${m.parses.toLocaleString()} parses \u00b7 ${m.kills.toLocaleString()} kills</span>
     <span class="chips">${chips}</span></button>`}).join('')+
- `<button class="patchbtn" role="tab" data-id="all" aria-selected="false">
-    <span class="pv">All data</span><span class="pd">every patch pooled</span>
+ (PM.length>1?`<button class="patchbtn" role="tab" data-id="all" aria-selected="false">
+    <span class="pv">All data</span><span class="pd">every published patch pooled</span>
     <span class="pn">${D.dataset.five.toLocaleString()} parses \u00b7 ${D.dataset.encounters.toLocaleString()} kills</span>
-    <span class="chips"><span class="chip change">mixes balance changes</span></span></button>`;
+    <span class="chips"><span class="chip change">mixes balance changes</span></span></button>`:'');
 [...pbar.children].forEach(b=>b.onclick=()=>setPatch(b.dataset.id));
 setPatch((PM.find(m=>m.current)||PM[PM.length-1]||{id:'all'}).id);
 </script>

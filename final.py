@@ -294,10 +294,27 @@ def build(S):
     out["representation"]={c:dict(samples=sum(1 for s in F if s["cls"]==c),players=len({s["pid"] for s in F if s["cls"]==c and not s["anon"]}),medDur=out["durByClass"][c]["medDur"],avgCrit=st.mean([s["crit"] for s in F if s["cls"]==c and s["crit"] is not None])) for c in CLS}
     return out
 
-ALL=build(S)
+# ---------- what gets published ----------
+# Standing policy: the site reports the current patch and every patch after it.
+# Balance changed between the earlier patches, so pooling them into a headline
+# describes a game nobody is playing any more. Add a new patch to PATCHES and it
+# publishes automatically; nothing here needs changing when one lands.
+#
+# The patch immediately before the first published one is still built, because
+# the movement strip measures a patch against its predecessor. It is never
+# offered in the selector.
+PUBLISH_FROM="v0.06"
+ids=[P["id"] for P in PATCHES]
+first=ids.index(PUBLISH_FROM) if PUBLISH_FROM in ids else 0
+PUB=[P for P in PATCHES[first:]]
+BASELINE=PATCHES[first-1] if first>0 else None
+PREV={P["id"]:(PATCHES[i-1]["id"] if i>0 else None) for i,P in enumerate(PATCHES)}
+
+SP=[x for x in S if x["patch"] in {P["id"] for P in PUB}]
+ALL=build(SP)                      # "all data" means all published data
 out=dict(ALL)
 out["patches"]={}
-for P in PATCHES:
+for P in PUB+([BASELINE] if BASELINE else []):
     sub=[x for x in S if x["patch"]==P["id"]]
     if len(sub)<200: continue
     out["patches"][P["id"]]=build(sub)
@@ -305,7 +322,10 @@ out["patchMeta"]=[dict(id=P["id"],name=P["name"],summary=P["summary"],classes=P[
     start=(P["start"].isoformat()+"Z" if P["start"] else None),end=(P["end"].isoformat()+"Z" if P["end"] else None),
     parses=sum(1 for x in S if x["patch"]==P["id"] and x["psize"]==5),
     kills=len({x["uid"] for x in S if x["patch"]==P["id"] and x["psize"]==5}),
-    current=P["end"] is None) for P in PATCHES]
+    prev=PREV[P["id"]],prevName=next((q["name"] for q in PATCHES if q["id"]==PREV[P["id"]]),None),
+    current=P["end"] is None) for P in PUB]
+out["publishFrom"]=PUBLISH_FROM
+out["archived"]=[dict(id=P["id"],name=P["name"]) for P in PATCHES[:first]]
 json.dump(out,open("final.json","w",encoding="utf-8"),indent=1,ensure_ascii=False)
 json.dump(S,open("samples_final.json","w"))
 print(json.dumps(out["dataset"]))
