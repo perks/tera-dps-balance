@@ -85,10 +85,10 @@ tr.me td{background:var(--heat0)}
 
 <section>
 <h2>Glyphs</h2>
-<p class="lead">Grouped by the skill each glyph modifies, ordered by that skill's share of Slayer damage. Percentage is the share of shortlisted players running the glyph; <span id="glcov2"></span> of shortlist parses have a recorded glyph page.</p>
+<p class="lead">Read from the <b>top 40% of every boss list only</b> — <span id="glpop"></span>. The shortlist runs 25 deep per boss and the back half of it is where the eccentric glyph choices sit, so counting it would describe what people happen to have slotted rather than what the build is. Grouped by the skill each glyph is slotted on, ordered by that skill's share of Slayer damage. Percentage is the share of that group running the glyph.</p>
 <p class="note" style="margin:-6px 0 12px">This server runs custom glyphs, and its display names are not unique: twenty names each cover two or three <b>different</b> glyphs. Powerlinked Eviscerate, for one, is a glyph that buffs Measured Slice <b>and</b> a separate glyph that buffs Overhand Strike — both in near-universal use. Everything here is keyed on the glyph's own id, and where a name is shared the arrow shows which skill that particular glyph buffs, or the point cost separates them. Some names are also legacy and refer to a skill that no longer exists, so glyphs are grouped by the skill they are actually slotted on: Boosted Overpower sits on Whirlwind, Energetic Triumphant Shout and Keen Overpower on Knockdown Strike, Powerlinked Overhand Strike on Eviscerate. A <span class="vg">~</span> means the server publishes the effect but not its size.</p>
 <div class="skillgroups" id="glyphs"></div>
-<details><summary>Full glyph table, top third of the shortlist vs the rest</summary><div class="inner tscroll" id="gfull"></div></details>
+<details><summary>Full glyph table, best fifth vs the rest of the top 40%</summary><div class="inner tscroll" id="gfull"></div></details>
 </section>
 
 <section>
@@ -112,7 +112,7 @@ tr.me td{background:var(--heat0)}
 <li>For each boss, each player's single best parse is ranked and the top 25 kept. One parse per player per boss.</li>
 <li>Item level across the shortlist runs <span id="ilvlr"></span>, median <span id="ilvlm"></span>.</li>
 <li>Top third vs rest uses each player's rank within their own boss shortlist.</li>
-<li>Combat logs are available for all shortlist parses; glyph pages for <span id="glcov"></span>.</li>
+<li>Combat logs are available for all shortlist parses; glyph pages for <span id="glcov"></span>. Glyph figures use only the top 40% of each boss list, so they rest on a smaller group than the gear figures.</li>
 <li>Savage bosses have 1–5 players on record.</li>
 </ul></div>
 </section>
@@ -168,9 +168,9 @@ document.getElementById('glyphs').innerHTML=D.glyphsBySkill.filter(g=>g.glyphs.s
   <div class="skillhead">${g.icon?`<img src="${g.icon}" alt="">`:''}<b>${g.skill}</b><span>${g.share!=null?f1(g.share)+'% of damage':''}</span></div>
   ${g.glyphs.filter(x=>x.share>=0.15).map(x=>`<div class="gitem">${x.icon?`<img src="${x.icon}" alt="">`:''}<div class="nm">${x.label}${x.points?`<i>${x.points} points${x.desc?' · '+(x.vague?'<span class="vg">~</span> ':'')+x.desc:''}</i>`:''}</div><div class="pctn ${x.share>=0.9?'hi':''}">${pc(x.share)}</div></div>`).join('')}
  </div>`).join('');
-document.getElementById('gfull').innerHTML=`<table><thead><tr><th>glyph</th><th>slotted on</th><th>effect</th><th>points</th><th>shortlist</th><th>top third</th><th>rest</th></tr></thead><tbody>`+
+document.getElementById('gfull').innerHTML=`<table><thead><tr><th>glyph</th><th>slotted on</th><th>effect</th><th>points</th><th>top 40%</th><th>best 20%</th><th>20-40%</th></tr></thead><tbody>`+
  D.glyphs.list.map(g=>`<tr><td><b>${g.label}</b><i class="gid">#${g.id}</i></td><td class="n">${g.skill||''}</td><td class="gd">${g.vague?'<span class="vg">~</span> ':''}${g.desc||''}</td><td class="n">${g.points||''}</td><td>${pc(g.share)}</td><td class="n">${pc(g.top)}</td><td class="n">${pc(g.rest)}</td></tr>`).join('')+
- `</tbody></table><p class="note">Top third n=${D.glyphs.nTop}, rest n=${D.glyphs.nRest}.</p>`;
+ `</tbody></table><p class="note">Best 20% n=${D.glyphs.nTop} parses, 20-40% n=${D.glyphs.nRest}. A glyph needs 3 sightings to be listed.</p>`;
 // rotation
 const icons={}; D.glyphsBySkill.forEach(g=>{if(g.icon)icons[g.skill]=g.icon});
 const rot=D.rotation.filter(r=>r.name!=='(unnamed)'&&r.share>=0.5);
@@ -190,6 +190,7 @@ document.getElementById('ilvlr').textContent=`${ds.ilvlLo.toFixed(0)}-${ds.ilvlH
 document.getElementById('ilvlm').textContent=ds.ilvlMed.toFixed(1);
 document.getElementById('ilvlm2').textContent=ds.ilvlMed.toFixed(1);
 document.getElementById('glcov').textContent=pc(ds.withGlyphs/ds.shortlistParses);
+document.getElementById('glpop').textContent=`${D.glyphs.n} parses from ${D.glyphs.nPlayers} players, out of ${D.glyphs.eligible} shortlist rows in that band (${D.glyphs.nExcluded} rows below the cut are ignored)`;
 document.getElementById('glcov2').textContent=pc(ds.withGlyphs/ds.shortlistParses);
 </script>
 """

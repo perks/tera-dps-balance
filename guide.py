@@ -4,7 +4,7 @@ IC=json.load(open("slayer_skill_icons.json",encoding="utf-8"))
 ICONS={k:"../icons/"+v.split("/")[-1].lower() for k,v in IC.items()}
 # keyed by glyph id: display names are reused across different custom glyphs
 GLY={g["id"]:g for g in D["glyphs"]["list"]}
-CTX=dict(icons=ICONS,glyphs={str(k):dict(share=v["share"],icon=v.get("icon"),points=v.get("points"),skill=v.get("skill"),desc=v.get("desc"),label=v.get("label"),name=v.get("name"),vague=v.get("vague")) for k,v in GLY.items()},
+CTX=dict(icons=ICONS,glyphMeta={k:D['glyphs'][k] for k in ('n','nPlayers','nTop','nRest','cut','split','eligible','nExcluded')},glyphs={str(k):dict(share=v["share"],icon=v.get("icon"),points=v.get("points"),skill=v.get("skill"),desc=v.get("desc"),label=v.get("label"),name=v.get("name"),vague=v.get("vague")) for k,v in GLY.items()},
          rotation=D["rotation"],crystals=D["crystals"],gearRolls=D["gearRolls"],runs=D["runs"],jewelry=D["runs"]["jewelry"],
          split=D["split"],dataset=D["dataset"])
 DATA=json.dumps(CTX,ensure_ascii=False).replace('"icons/','"../icons/')
@@ -132,7 +132,7 @@ ol.steps li::before{content:counter(s);position:absolute;left:0;top:7px;width:22
 <div class="tierhead"><span class="dot blu"></span>Playstyle</div>
 <p style="margin:0 0 8px">These depend entirely on how you want to play — experiment.</p>
 <div class="gcards" id="gBlu"></div>
-<p class="note">Tiers are ordered by how widely the top 25 players per boss actually run each glyph. <a href="../slayer-build/" style="color:var(--bar)">Full adoption table →</a></p>
+<p class="note">Tiers are ordered by how widely each glyph is actually run by the <b>top 40% of every boss list</b> — <span id="glyphPop"></span>. The back half of each list is left out because that is where the eccentric glyph pages sit. <a href="../slayer-build/" style="color:var(--bar)">Full adoption table →</a></p>
 
 <h3>Notes on the flexible picks</h3>
 <ul class="tight">
@@ -238,7 +238,7 @@ document.getElementById('broochData').innerHTML=`<table><thead><tr><th>brooch</t
  br.map(b=>`<tr><td><b>${b.value}</b></td><td>${pc(b.share)}</td></tr>`).join('')+`</tbody></table>`;
 // glyph tiers by measured adoption
 const gl=Object.entries(C.glyphs).map(([id,g])=>({id:+id,...g})).sort((a,b)=>b.share-a.share);
-const card=(g,cls)=>`<div class="gcard ${cls}">${g.icon?`<img src="${g.icon}" alt="">`:''}<div><div class="nm">${g.label}</div><div class="mt">${g.points?g.points+' pts · ':''}${pc(g.share)} of top 25${g.desc?' · '+(g.vague?'~ ':'')+g.desc:''}</div></div></div>`;
+const card=(g,cls)=>`<div class="gcard ${cls}">${g.icon?`<img src="${g.icon}" alt="">`:''}<div><div class="nm">${g.label}</div><div class="mt">${g.points?g.points+' pts · ':''}${pc(g.share)} of the top 40%${g.desc?' · '+(g.vague?'~ ':'')+g.desc:''}</div></div></div>`;
 const CORE=[23080], HIDE=[23058];   // Carving Knockdown Strike / Keen Overpower, by id
 const tier=g=>HIDE.includes(g.id)?null:(CORE.includes(g.id)||g.share>=0.9?'red':g.share>=0.35?'yel':g.share>=0.1?'blu':null);
 document.getElementById('gRed').innerHTML=gl.filter(g=>tier(g)==='red').map(g=>card(g,'red')).join('');
@@ -262,7 +262,8 @@ document.getElementById('opener').innerHTML=seq([
 document.getElementById('seqBad').innerHTML=seq([['Knockdown Strike',''],['Overhand Strike',''],['Eviscerate',''],['Overhand Strike','no reset']]);
 document.getElementById('seqGood').innerHTML=seq([['Knockdown Strike',''],['Overhand Strike',''],['Heart Thrust',''],['Eviscerate',''],['Measured Slice','']]);
 
-document.getElementById('srcNote').textContent=`Percentages on this page are measured from ${C.dataset.shortlistParses} parses by the top 25 players on each of ${C.dataset.boards} endgame bosses.`;
+document.getElementById('srcNote').textContent=`Percentages on this page are measured from ${C.dataset.shortlistParses} parses by the top 25 players on each of ${C.dataset.boards} endgame bosses. Glyph percentages use a tighter group: the top 40% of each list, ${C.glyphMeta.n} parses from ${C.glyphMeta.nPlayers} players.`;
+document.getElementById('glyphPop').textContent=`${C.glyphMeta.n} parses from ${C.glyphMeta.nPlayers} players`;
 </script>
 """
 html=html.replace("__CSS__",css).replace("__DATA__",DATA)

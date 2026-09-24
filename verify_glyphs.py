@@ -63,10 +63,19 @@ ph=[g["id"] for g in L if "$" in (g.get("desc") or "")]
 print(f"[5] no $value/$prob placeholder text on the page: {not ph}")
 for i in ph: fail.append(f"#{i} still shows a raw placeholder")
 
-# 6. the heavily-used glyphs must all be on the page
-missing=[(i,c) for i,c in use.most_common() if c>=200 and i not in set(ids)]
-print(f"[6] every glyph used 200+ times is on the page: {not missing}")
-for i,c in missing: fail.append(f"#{i} ({live[i]['name']}) used {c} times but absent")
+# 6. A heavily-used glyph may be absent only because the population cut removed
+#    it. It must still survive the id handling, which glyphsAllPop proves: that
+#    is the same aggregation over the whole shortlist, with no cut applied.
+allpop=set(out.get("glyphsAllPop") or [])
+heavy=[(i,c) for i,c in use.most_common() if c>=200]
+lost=[(i,c) for i,c in heavy if i not in allpop]
+cut=[(i,c) for i,c in heavy if i in allpop and i not in set(ids)]
+print(f"[6] every glyph used 200+ times survives the id handling: {not lost}")
+for i,c in lost: fail.append(f"#{i} ({live[i]['name']}) used {c} times but dropped entirely")
+if cut:
+    g=out["glyphs"]
+    print(f"    {len(cut)} held back by the top-{g['cut']:.0%} population cut, as intended:")
+    for i,c in cut: print(f"      #{i} {live[i]['name']} ({c} uses across all parses)")
 
 # 7. artwork
 noicon=[g["id"] for g in L if not g.get("icon")]

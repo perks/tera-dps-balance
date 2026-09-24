@@ -175,14 +175,30 @@ def gearmix(rows):
 out["gearSplit"]={"Top third of every shortlist":gearmix([r for r in SL if r["pctile"]<=0.34]),
                   "Rest of the shortlist":gearmix([r for r in SL if r["pctile"]>0.34])}
 # ---------- glyphs among the shortlist ----------
-GL=[r for r in SL if r["hasGlyphs"] and len(r["glyphs"])>=6]
+# Glyph pages are read from the top 40% of every board only. The shortlist runs
+# 25 deep per boss, and the back half of it is where the eccentric glyph choices
+# live - counting them makes a page read like a survey of what people happen to
+# have slotted rather than what the build is.
+GLCUT=0.40; GLSPLIT=0.20
+ELIG=[r for r in SL if r["pctile"]<=GLCUT]
+GL=[r for r in ELIG if r["hasGlyphs"] and len(r["glyphs"])>=6]
 gc=collections.Counter()
 for r in GL: gc.update(r["glyphs"])
-topG=[r for r in GL if r["pctile"]<=0.34]; restG=[r for r in GL if r["pctile"]>0.34]
-out["glyphs"]={"n":len(GL),"nTop":len(topG),"nRest":len(restG),"list":[
+topG=[r for r in GL if r["pctile"]<=GLSPLIT]; restG=[r for r in GL if r["pctile"]>GLSPLIT]
+out["glyphs"]={"n":len(GL),"nTop":len(topG),"nRest":len(restG),
+  "cut":GLCUT,"split":GLSPLIT,"eligible":len(ELIG),
+  "nPlayers":len({r["pid"] for r in GL}),"nExcluded":len([r for r in SL if r["pctile"]>GLCUT]),
+  "list":[
   dict(id=g,share=c/len(GL),top=sum(1 for r in topG if g in r["glyphs"])/max(1,len(topG)),
        rest=sum(1 for r in restG if g in r["glyphs"])/max(1,len(restG)))
   for g,c in gc.most_common() if c>=3]}
+# Unrestricted counterpart of the list above, over the whole shortlist. Nothing
+# renders it; it exists so verify_glyphs.py can tell a glyph the population cut
+# removed on purpose from one the id handling dropped by mistake.
+_gcAll=collections.Counter()
+for r in [x for x in SL if x["hasGlyphs"] and len(x["glyphs"])>=6]: _gcAll.update(r["glyphs"])
+out["glyphsAllPop"]=sorted(_gcAll)
+
 # ---------- rotation reference ----------
 allsk=collections.defaultdict(list)
 for r in SL:
