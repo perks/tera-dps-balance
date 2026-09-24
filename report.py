@@ -105,6 +105,13 @@ td.thin{opacity:.55}
  font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--neg-bg);color:var(--neg);border:1px solid var(--neg)}
 td.thin .np{color:var(--neg)}
 .np{display:block;font-style:normal;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.slaytog{display:inline-flex;align-items:center;gap:9px;margin:0 0 18px;padding:9px 13px;cursor:pointer;
+ border:1px solid var(--line2);background:var(--panel);border-radius:8px;font-size:13.5px;color:var(--ink)}
+.slaytog:hover{border-color:var(--bar)}
+.slaytog input{margin:0;cursor:pointer}
+.slaytog i{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:1px}
+tr.thin td{opacity:.55}
+td.up{color:var(--pos)} td.down{color:var(--neg)}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable.on{color:var(--bar)}
 .patchbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
@@ -146,6 +153,7 @@ th.sortable.on{color:var(--bar)}
 <p class="sub">Pick a patch below — class balance changed between them, so pooling every patch together blurs the picture. Everything on this page then reflects that patch only. Data covers every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded, as are the 1.6% of kills that ran without any tank at all, where somebody is tanking on a DPS character.</p>
 <div class="patchbar" id="patchbar" role="tablist"></div>
 <div class="patchinfo" id="patchinfo"></div>
+<label class="slaytog" id="slayTog"><input type="checkbox" id="slayBox"><span><b>Include slaying runs</b><i></i></span></label>
 <div class="tiles" id="tiles"></div>
 
 <section>
@@ -223,6 +231,15 @@ th.sortable.on{color:var(--bar)}
 <div class="tscroll" id="gmTable"></div>
 <p class="legend">Each column compares classes only within that exact level, so columns are independent of one another and should not be read as a progression for one player. <b>n</b> is parses, <b>p</b> distinct players. A figure resting on fewer than <span id="gmMin"></span> players is greyed — at the top of the ladder a class is often one or two people, and that is individual skill rather than class balance.</p>
 </div></details>
+</section>
+
+<section>
+<h2>Slaying runs on their own</h2>
+<p class="lead">A <b>Slaying</b> or <b>Furious</b> weapon crystal only pays out below 50% HP. It is a deliberate risk-for-damage trade rather than a different level of skill or gear, and the parses it produces are not comparable with ordinary ones — so they are held out of every other table on this page. Here they are on their own, each class measured against its own non-slaying median. <span class="n" id="slayMeta"></span></p>
+<div class="panel">
+<div class="tscroll" id="slayTable"></div>
+<p class="legend">Lift is the slaying median against that class's ordinary median on the same selection. These are a thin slice of the board and the players running them are not a random sample of their class, so read the lift as what this playstyle produced for the people who chose it, not as what it would do for anyone. Rows resting on fewer than 10 players are greyed.</p>
+</div>
 </section>
 
 <section>
@@ -324,6 +341,24 @@ function render(){
  sel.onchange=()=>kt(sel.value);kt(bossKeys[0]);
  // gear
 
+
+ // ---- slaying runs, on their own ----
+ {
+  const ST=A.slayingTable||{};
+  const cl=ST.classes||{};
+  const rows=Object.entries(cl).sort((a,b)=>b[1].lift-a[1].lift);
+  document.getElementById('slayMeta').textContent=ST.n
+    ? `${ST.n.toLocaleString()} parses from ${ST.players} players`+
+      (ST.share!=null?` — ${(100*ST.share).toFixed(1)}% of parses with gear data`:'')
+    : '';
+  document.getElementById('slayTable').innerHTML=rows.length
+   ? `<table><thead><tr><th>class</th><th>parses</th><th>players</th><th>slaying median</th><th>ordinary median</th><th>lift</th><th>best</th></tr></thead><tbody>`+
+     rows.map(([c,r])=>`<tr class="${r.thin?'thin':''}"><td><b>${c}</b></td><td class="n">${r.n}</td><td class="n">${r.players}${r.thin?' <span class="tagthin">thin</span>':''}</td>`+
+       `<td><b>${fk(r.med)}</b></td><td class="n">${fk(r.base)}</td>`+
+       `<td class="${r.lift>=1?'up':'down'}"><b>${r.lift>=1?'+':'−'}${Math.abs(100*(r.lift-1)).toFixed(0)}%</b></td>`+
+       `<td class="n">${fk(r.max)}</td></tr>`).join('')+`</tbody></table>`
+   : '<p class="note">No slaying parses in this selection.</p>';
+ }
  // ---- gear-equalised ----
  const GM=A.gearMatch;
  // Enchant levels only mean something on the live patch, so on any other
@@ -470,9 +505,13 @@ const PM=D.patchMeta.filter(m=>m.parses>0);
 const DATES={};
 PM.forEach(m=>{DATES[m.id]=m.start?new Date(m.start).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'from launch'});
 const pbar=document.getElementById('patchbar');
+let SLAY=false;   // slaying parses are held out of the headline by default
+function baseOf(id){return (id==='all')?D:D.patches[id]}
 function setPatch(id){
   ACTIVE=id;
-  A=(id==='all')?D:D.patches[id];
+  const b=baseOf(id);
+  A=(SLAY&&b.withSlaying)?b.withSlaying:b;
+  A.slayingTable=A.slayingTable||b.slayingTable;
   [...pbar.children].forEach(b=>b.setAttribute('aria-selected',String(b.dataset.id===id)));
   const m=PM.find(x=>x.id===id);
   const info=document.getElementById('patchinfo');
@@ -498,6 +537,11 @@ pbar.innerHTML=PM.map(m=>{
     <span class="pv">All data</span><span class="pd">every patch pooled</span>
     <span class="pn">${D.dataset.five.toLocaleString()} parses \u00b7 ${D.dataset.encounters.toLocaleString()} kills</span>
     <span class="chips"><span class="chip change">mixes balance changes</span></span></button>`;
+{ const box=document.getElementById('slayBox');
+  const sync=()=>{const t=document.getElementById('slayTog').querySelector('i');
+    t.textContent=SLAY?'counted in every table below':'held out of every table below — they sit far above ordinary parses';};
+  box.onchange=()=>{SLAY=box.checked;sync();setPatch(ACTIVE)};
+  sync(); }
 [...pbar.children].forEach(b=>b.onclick=()=>setPatch(b.dataset.id));
 setPatch((PM.find(m=>m.current)||PM[PM.length-1]||{id:'all'}).id);
 </script>

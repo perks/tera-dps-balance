@@ -100,6 +100,13 @@ td.thin{opacity:.55}
  font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--neg-bg);color:var(--neg);border:1px solid var(--neg)}
 td.thin .np{color:var(--neg)}
 .np{display:block;font-style:normal;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.slaytog{display:inline-flex;align-items:center;gap:9px;margin:0 0 18px;padding:9px 13px;cursor:pointer;
+ border:1px solid var(--line2);background:var(--panel);border-radius:8px;font-size:13.5px;color:var(--ink)}
+.slaytog:hover{border-color:var(--bar)}
+.slaytog input{margin:0;cursor:pointer}
+.slaytog i{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:1px}
+tr.thin td{opacity:.55}
+td.up{color:var(--pos)} td.down{color:var(--neg)}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable.on{color:var(--bar)}
 .patchbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
@@ -151,7 +158,7 @@ th.sortable.on{color:var(--bar)}
 <h1>Classic+ Data</h1>
 <p class="sub">Analysis built from the public leaderboard API, covering the five endgame dungeons: Timescape (Hard and Savage), Shadow Sanguinary (Hard and Savage) and Dragon's Landing.</p>
 </div>
-<div class="cards"><a class="card" href="tera-dps-balance/"><h3>DPS class balance</h3><p>Every DPS player in 12,844 recorded 5-man kills of Timescape, Shadow Sanguinary and Dragon's Landing. Raw, kill-time-matched and gear-matched comparisons across all nine DPS classes.</p><div class="stats"><div><b>37,570</b>parses</div><div><b>1,544</b>named players</div><div><b>9</b>classes</div></div><span class="go">Open &rarr;</span></a><a class="card" href="slayer-build/"><h3>Slayer build data</h3><p>What the top 25 Slayers on each endgame boss actually wear: rolls, crystals, jewelry lines and glyph adoption, measured from their best parses.</p><div class="stats"><div><b>52</b>players</div><div><b>219</b>parses</div><div><b>15</b>boss lists</div></div><span class="go">Open &rarr;</span></a><a class="card" href="slayer-guide/"><h3>Slayer guide</h3><p>How to play the class: gearing targets, glyph tiers, the opener, rotation priority, repositioning and defensives.</p><div class="stats"><div><b>PvE</b>focus</div><div><b>0.04</b>patch</div><div><b>Guide</b>format</div></div><span class="go">Open &rarr;</span></a></div>
+<div class="cards"><a class="card" href="tera-dps-balance/"><h3>DPS class balance</h3><p>Every DPS player in 12,712 recorded 5-man kills of Timescape, Shadow Sanguinary and Dragon's Landing. Raw, kill-time-matched and gear-matched comparisons across all nine DPS classes.</p><div class="stats"><div><b>37,009</b>parses</div><div><b>1,544</b>named players</div><div><b>9</b>classes</div></div><span class="go">Open &rarr;</span></a><a class="card" href="slayer-build/"><h3>Slayer build data</h3><p>What the top 25 Slayers on each endgame boss actually wear: rolls, crystals, jewelry lines and glyph adoption, measured from their best parses.</p><div class="stats"><div><b>52</b>players</div><div><b>219</b>parses</div><div><b>15</b>boss lists</div></div><span class="go">Open &rarr;</span></a><a class="card" href="slayer-guide/"><h3>Slayer guide</h3><p>How to play the class: gearing targets, glyph tiers, the opener, rotation priority, repositioning and defensives.</p><div class="stats"><div><b>PvE</b>focus</div><div><b>0.04</b>patch</div><div><b>Guide</b>format</div></div><span class="go">Open &rarr;</span></a></div>
 <p class="note" style="margin-top:22px">Data is a snapshot, not live. Anonymous players are included in aggregate statistics but cannot be de-duplicated, so player counts are lower bounds.</p>
 </div>
 </body></html>

@@ -38,6 +38,8 @@ for f in os.listdir("enc"):
         S.append(dict(uid=d["uid"],area=AREAS[m["areaId"]],boss=d["boss"],cls=p["cls"],dps=p["dps"],dur=d["dur"],psize=psize,
             pid=p["pid"] or ("anon:"+str(p["name"])),anon=p["pid"] is None,ts=m["encounterUnixEpoch"],crit=p["crit"],deaths=p["deaths"],
             ilvl=p["ilvl"],wEnch=p["wEnchant"],gEnch=(p["armorEnchant"] or {}).get("gloves"),brooch=p["brooch"],hasGear=p["hasGear"],
+            slaying=any(("slaying" in str(c).lower() or "furious" in str(c).lower())
+                        for c in (p["wCrystals"] or [])),
             enr=sum(1 for r in wr if "enraged" in r),flat=sum(1 for r in wr if r.startswith("Increases damage by 6.0%")),
             behind=sum(1 for r in wr if "from behind" in r),armor=tuple(p["armorEnchant"].values())))
 print("samples",len(S),"drop",dict(drop),"| encounters not on the rankings board (kept):",offboard,
@@ -294,13 +296,48 @@ def build(S):
     out["representation"]={c:dict(samples=sum(1 for s in F if s["cls"]==c),players=len({s["pid"] for s in F if s["cls"]==c and not s["anon"]}),medDur=out["durByClass"][c]["medDur"],avgCrit=st.mean([s["crit"] for s in F if s["cls"]==c and s["crit"] is not None])) for c in CLS}
     return out
 
-ALL=build(S)
+# ---------- slaying runs ----------
+# A Slaying or Furious weapon crystal pays out only below 50% HP. It is a
+# deliberate risk-for-damage trade, and the parses it produces are not
+# comparable with ordinary ones: they sit 22% to 125% above the same class's
+# normal median, and the size of that jump differs by class, so leaving them in
+# distorts the standings as well as the absolute numbers. They are 1.6% of
+# parses. Every headline on this page therefore excludes them, and the toggle
+# puts them back for anyone who wants the raw board.
+def noslay(xs): return [x for x in xs if not x.get("slaying")]
+def slayonly(xs): return [x for x in xs if x.get("slaying")]
+
+def slaying_table(xs):
+    """Small summary of the slaying parses themselves, against their own class."""
+    base={}
+    for c in CLS:
+        n=[x["dps"] for x in noslay(xs) if x["cls"]==c]
+        if len(n)>=25: base[c]=st.median(n)
+    out2={}
+    for c in CLS:
+        v=[x for x in slayonly(xs) if x["cls"]==c]
+        if len(v)<10 or c not in base: continue
+        d=[x["dps"] for x in v]
+        out2[c]=dict(n=len(d),players=len({x["pid"] for x in v}),
+                     med=st.median(d),max=max(d),avg=st.mean(d),
+                     base=base[c],lift=st.median(d)/base[c],
+                     thin=len({x["pid"] for x in v})<10)
+    tot=len(slayonly(xs)); wc=len([x for x in xs if x.get("hasGear")])
+    return dict(n=tot,players=len({x["pid"] for x in slayonly(xs)}),
+                share=(tot/wc if wc else None),classes=out2)
+
+ALL=build(noslay(S))
 out=dict(ALL)
+out["withSlaying"]=build(S)
+out["slayingTable"]=slaying_table(S)
 out["patches"]={}
 for P in PATCHES:
     sub=[x for x in S if x["patch"]==P["id"]]
     if len(sub)<200: continue
-    out["patches"][P["id"]]=build(sub)
+    b=build(noslay(sub))
+    b["withSlaying"]=build(sub)
+    b["slayingTable"]=slaying_table(sub)
+    out["patches"][P["id"]]=b
 
 # ---------- where the enchant record cannot be trusted ----------
 # Enchant levels are only meaningful on the live patch. The first weeks of the
@@ -328,7 +365,16 @@ out["patchMeta"]=[dict(id=P["id"],name=P["name"],summary=P["summary"],classes=P[
     parses=sum(1 for x in S if x["patch"]==P["id"] and x["psize"]==5),
     kills=len({x["uid"] for x in S if x["patch"]==P["id"] and x["psize"]==5}),
     current=P["end"] is None) for P in PATCHES]
-json.dump(out,open("final.json","w",encoding="utf-8"),indent=1,ensure_ascii=False)
+# The gear block feeds the console summary below but nothing on the page, and it
+# is the single largest unused key, so it is stripped before the file is written.
+def strip(d):
+    if isinstance(d,dict):
+        d.pop("gear",None)
+        for v in d.values(): strip(v)
+    return d
+import copy
+pub=strip(copy.deepcopy(out))
+json.dump(pub,open("final.json","w",encoding="utf-8"),indent=1,ensure_ascii=False)
 json.dump(S,open("samples_final.json","w"))
 print(json.dumps(out["dataset"]))
 def show(d,key):
