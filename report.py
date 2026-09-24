@@ -134,6 +134,8 @@ th.sortable.on{color:var(--bar)}
 .mv{display:inline-block;font-size:13px;font-weight:600;padding:2px 8px;border-radius:4px;margin:2px 4px 2px 0;font-variant-numeric:tabular-nums}
 .mv.up{background:var(--pos-bg);color:var(--pos)}
 .mv.down{background:var(--neg-bg);color:var(--neg)}
+.mv.flat{background:var(--mid-bg);color:var(--ink2)}
+.msum{display:block;font-size:13px;color:var(--ink);margin:2px 0 7px;line-height:1.5}
 .mv sup{font-size:9px;opacity:.85;margin-left:2px}
 .moves .cav{display:block;font-size:12px;color:var(--muted);margin-top:5px}
 .patchinfo{border-left:3px solid var(--bar);background:var(--panel);border-radius:0 6px 6px 0;padding:10px 14px;margin:0 0 18px;font-size:14px}
@@ -490,14 +492,36 @@ function moves(m){
   if(!A1||!A0||!A1.moveIndex||!A0.moveIndex) return '';
   const t1=A1.moveIndex, t0=A0.moveIndex;
   const chg=new Set(m.classes.filter(c=>c.dir!=='pvp').map(c=>c.cls));
-  const d=Object.keys(t1).filter(c=>t0[c]&&t1[c].n>=30&&t0[c].n>=30)
+  const d=Object.keys(t1).filter(c=>t0[c])
     .map(c=>[c,(t1[c].rel-t0[c].rel)*100])
-    .filter(x=>Math.abs(x[1])>=3).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,5);
+    .sort((a,b)=>b[1]-a[1]);
+  // a class with too few fast kills in either patch has no comparison to show,
+  // and saying so keeps the list honestly complete
+  const nocmp=Object.keys(t1).filter(c=>!t0[c]).sort();
   const lab=`<span class="mlab">Movement vs ${prev.name} \u00b7 fastest 10% of kills</span>`;
-  if(!d.length) return `<div class="moves">${lab}<span class="cav">No class moved by more than 3 points.</span></div>`;
-  return `<div class="moves">${lab}`+
-   d.map(([c,v])=>`<span class="mv ${v>0?'up':'down'}" title="${c}: ${Math.abs(v).toFixed(1)} points ${v>0?'higher':'lower'} than in ${prev.name}, across the fastest 10% of kills on each boss">${c} ${v>0?'+':'\u2212'}${Math.abs(v).toFixed(0)}${chg.has(c)?'<sup>\u25cf</sup>':''}</span>`).join('')+
-   `<span class="cav">Taken from the fastest 10% of kills on each boss \u2014 the end of the ladder where groups are geared and executing, which is the population a balance change is best judged on. Gear is not held constant, so some of the shift reflects upgrades as well as the patch. Figures are points on a relative scale, so one class climbing pushes the rest down.${d.some(([c])=>chg.has(c))?' \u25cf marks a class this patch changed directly.':''}</span></div>`;
+  if(!d.length) return `<div class="moves">${lab}<span class="cav">Not enough fast kills in one of the two patches to compare.</span></div>`;
+  // a sentence on what the patch actually did, so the strip reads as a summary
+  // rather than a row of numbers to decode
+  const up=d.filter(x=>x[1]>=1.5), dn=d.filter(x=>x[1]<=-1.5);
+  const flat=d.length-up.length-dn.length;
+  const fmt=x=>`<b>${x[0]}</b> ${x[1]>0?'+':'\u2212'}${Math.abs(x[1]).toFixed(0)}`;
+  let sum;
+  if(!up.length&&!dn.length){
+    sum=`Every class held within 1.5 points of ${prev.name}; nothing moved measurably.`;
+  }else{
+    const bits=[];
+    if(up.length) bits.push(`${up.slice(0,2).map(fmt).join(' and ')} gained most`);
+    if(dn.length) bits.push(`${dn.slice(-2).reverse().map(fmt).join(' and ')} gave back most`);
+    sum=bits.join(', ')+'. ';
+    sum+=flat?`The other ${flat} held inside 1.5 points. `:'';
+    const moved=d.filter(x=>Math.abs(x[1])>=3), hit=moved.filter(x=>chg.has(x[0]));
+    if(hit.length) sum+=`${hit.map(x=>x[0]).join(' and ')} ${hit.length===1?'was':'were'} changed directly in this patch.`;
+    else if(moved.length) sum+=`None of the classes that moved were changed directly in this patch, so the shift is gear and play rather than tuning.`;
+  }
+  if(nocmp.length) sum+=` ${nocmp.join(' and ')} had too few fast kills in ${prev.name} to compare.`;
+  return `<div class="moves">${lab}<span class="msum">${sum}</span>`+
+   d.map(([c,v])=>`<span class="mv ${Math.abs(v)<1.5?'flat':(v>0?'up':'down')}" title="${c}: ${Math.abs(v).toFixed(1)} points ${v>0?'higher':'lower'} than in ${prev.name}, across the fastest 10% of kills on each boss (${t0[c].n} then ${t1[c].n} parses)">${c} ${v>0?'+':'\u2212'}${Math.abs(v).toFixed(0)}${chg.has(c)?'<sup>\u25cf</sup>':''}</span>`).join('')+
+   `<span class="cav">Taken from the fastest 10% of kills on each boss \u2014 the end of the ladder where groups are geared and executing, which is the population a balance change is best judged on. Gear is not held constant, so some of the shift reflects upgrades as well as the patch. Every class with a comparable sample in both patches is listed, best move to worst; anything inside 1.5 points is shown flat because it is noise at this sample size. Figures are points on a relative scale, so one class climbing pushes the rest down.${d.some(([c])=>chg.has(c))?' \u25cf marks a class this patch changed directly.':''}</span></div>`;
 }
 
 // ---- patch selector ----
