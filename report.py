@@ -87,6 +87,12 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 .kpi .v{font-size:23px;font-weight:700;color:var(--ink);line-height:1.25;font-variant-numeric:tabular-nums}
 .kpi .s{font-size:12px;color:var(--ink2)}
 td.thin{opacity:.55}
+.onlycur{display:inline-block;vertical-align:middle;margin-left:9px;padding:3px 8px;border-radius:5px;
+ font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+ background:var(--bar-soft);color:var(--bar);border:1px solid var(--bar)}
+.blocked{border:1px solid var(--line2);background:var(--panel);border-radius:8px;padding:16px 18px;font-size:14px;line-height:1.55;color:var(--ink2)}
+.blocked b{color:var(--ink)}
+.blocked .h{display:block;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px}
 .disclaim{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--neg);
  background:var(--neg-bg);border-radius:8px;padding:12px 14px;margin:0 0 15px;font-size:13.5px;line-height:1.5;color:var(--ink)}
 .disclaim .ic{flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--neg);color:#fff;
@@ -204,15 +210,16 @@ th.sortable.on{color:var(--bar)}
 </section>
 
 <section>
-<h2>Gear-equalised comparison</h2>
+<h2>Gear-equalised comparison <span class="onlycur" id="gmOnly">current patch only</span></h2>
 <p class="lead">Damage enchanting on this server concentrates in the <b>weapon and the gloves</b>, so that pair says most of what there is to say about how far along someone's gear is. Every class here is compared only against the classes in <b>the same dungeon boss at the same two enchant levels</b> — a +6/+6 parse is never measured against a +8/+8 one. <span class="n" id="gmMeta"></span></p>
-<div class="panel">
+<div id="gmBlock"></div>
+<div class="panel" id="gmPanel">
 <div class="tabs" role="tablist" id="gmTabs"></div>
 <div id="gmWarn"></div>
 <div id="gmChart"></div>
 <p class="note" id="gmNote"></p>
 </div>
-<details><summary>Every enchant level side by side</summary><div class="inner">
+<details id="gmDetails"><summary>Every enchant level side by side</summary><div class="inner">
 <div class="tscroll" id="gmTable"></div>
 <p class="legend">Each column compares classes only within that exact level, so columns are independent of one another and should not be read as a progression for one player. <b>n</b> is parses, <b>p</b> distinct players. A figure resting on fewer than <span id="gmMin"></span> players is greyed — at the top of the ladder a class is often one or two people, and that is individual skill rather than class balance.</p>
 </div></details>
@@ -319,7 +326,19 @@ function render(){
 
  // ---- gear-equalised ----
  const GM=A.gearMatch;
- if(GM&&GM.overall&&Object.keys(GM.overall).length){
+ // Enchant levels only mean something on the live patch, so on any other
+ // selection the tables are withheld rather than shown with a caveat.
+ const gmOK=GM&&GM.reliable&&GM.overall&&Object.keys(GM.overall).length;
+ document.getElementById('gmPanel').style.display=gmOK?'':'none';
+ document.getElementById('gmDetails').style.display=gmOK?'':'none';
+ document.getElementById('gmOnly').style.display=gmOK?'':'none';
+ document.getElementById('gmBlock').innerHTML=gmOK?'':
+   `<div class="blocked"><span class="h">Not shown for ${ACTIVE==='all'?'the pooled view':((PM.find(m=>m.id===ACTIVE)||{}).name||'this selection')}</span>`+
+   `${ACTIVE==='all'?'Pooling every patch mixes that period back in, so the same caveat applies. ':''}${(GM&&GM.note)||''} `+
+   `Select <b>${(PM.find(m=>m.current)||{}).name||'the current patch'}</b> to see it.`+
+   `<span style="display:block;margin-top:8px;font-size:12.5px;color:var(--muted)">`+
+   `Every other section on this page is unaffected and reports the patch you have selected — only the enchant-keyed comparison is withheld.</span></div>`;
+ if(gmOK){
   document.getElementById('gmMeta').textContent=
     `${GM.n.toLocaleString()} parses across ${GM.cells} boss+gear cells · enchanting runs to +12, but the highest recorded here is +${GM.maxWeapon} weapon and +${GM.maxGloves} gloves`;
   document.getElementById('gmMin').textContent=GM.minPlayers;

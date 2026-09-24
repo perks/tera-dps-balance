@@ -301,6 +301,28 @@ for P in PATCHES:
     sub=[x for x in S if x["patch"]==P["id"]]
     if len(sub)<200: continue
     out["patches"][P["id"]]=build(sub)
+
+# ---------- where the enchant record cannot be trusted ----------
+# Enchant levels are only meaningful on the live patch. The first weeks of the
+# board carried very little traffic - 33 parses on the opening day against ~6,000
+# later - and what there was came from a handful of atypical characters, so the
+# share of parses at +8 or better runs 27% on day one, 0% by 12 Sep and 20% by
+# 23 Sep. That is not a gear curve, and no reading of it describes the server.
+# The records themselves are self-consistent (weapon item level pins the enchant
+# exactly, +8 is always 413), so this is a population problem, not bad data, and
+# it cannot be cleaned by filtering rows. Anything keyed on enchant is therefore
+# published for the current patch only; pooled "all data" inherits the same
+# contamination and is treated the same way.
+GEAR_NOTE=("Enchant levels are only reported for the patch now live. Earlier in the board's "
+           "history a handful of atypical characters produced most of the high-enchant parses "
+           "on very little traffic, so the gear mix from that period describes those few "
+           "accounts rather than the server.")
+for pid,pd in out["patches"].items():
+    cur=next((P["end"] is None for P in PATCHES if P["id"]==pid),False)
+    pd["gearMatch"]["reliable"]=bool(cur)
+    pd["gearMatch"]["note"]=None if cur else GEAR_NOTE
+out["gearMatch"]["reliable"]=False        # pooled view mixes the early patches in
+out["gearMatch"]["note"]=GEAR_NOTE
 out["patchMeta"]=[dict(id=P["id"],name=P["name"],summary=P["summary"],classes=P["classes"],content=P["content"],
     start=(P["start"].isoformat()+"Z" if P["start"] else None),end=(P["end"].isoformat()+"Z" if P["end"] else None),
     parses=sum(1 for x in S if x["patch"]==P["id"] and x["psize"]==5),
