@@ -77,7 +77,13 @@ for x in S: x["patch"]=patch_of(x["ts"])
 
 def q(xs,p):
     xs=sorted(xs); k=(len(xs)-1)*p; f=int(k); c=min(f+1,len(xs)-1); return xs[f]+(xs[c]-xs[f])*(k-f)
-def stats(xs,pids): return dict(n=len(xs),players=len(set(pids)),min=min(xs),p25=q(xs,.25),med=st.median(xs),avg=st.mean(xs),p75=q(xs,.75),p90=q(xs,.9),max=max(xs))
+def stats(rows):
+    xs=[r["dps"] for r in rows]
+    cr=[r["crit"] for r in rows if r["crit"] is not None]
+    dd=[r["deaths"] for r in rows if r["deaths"] is not None]
+    return dict(n=len(xs),players=len({r["pid"] for r in rows}),min=min(xs),p25=q(xs,.25),med=st.median(xs),
+                avg=st.mean(xs),p75=q(xs,.75),p90=q(xs,.9),max=max(xs),
+                crit=st.mean(cr) if cr else None,deaths=st.mean(dd) if dd else None)
 def build(S):
     out={}
     F=[s for s in S if s["psize"]==5]
@@ -87,11 +93,11 @@ def build(S):
     bossmed={k:st.median([s["dps"] for s in F if (s["area"],s["boss"])==k]) for k in {(s["area"],s["boss"]) for s in F}}
     for s in S: s["rel"]=s["dps"]/bossmed[(s["area"],s["boss"])]
     def cnt(sub,a,c,b=None): return sum(1 for s in sub if s["area"]==a and s["cls"]==c and (b is None or s["boss"]==b))
-    out["byArea"]={a:{c:stats([s["dps"] for s in F if s["area"]==a and s["cls"]==c],[s["pid"] for s in F if s["area"]==a and s["cls"]==c]) for c in CLS if cnt(F,a,c)>=3} for a in areas}
+    out["byArea"]={a:{c:stats([s for s in F if s["area"]==a and s["cls"]==c]) for c in CLS if cnt(F,a,c)>=3} for a in areas}
     out["byBoss"]={}
     for a in areas:
         for b in sorted({s["boss"] for s in F if s["area"]==a}):
-            out["byBoss"][a+" / "+b]={c:stats([s["dps"] for s in F if s["area"]==a and s["boss"]==b and s["cls"]==c],[s["pid"] for s in F if s["area"]==a and s["boss"]==b and s["cls"]==c]) for c in CLS if cnt(F,a,c,b)>=3}
+            out["byBoss"][a+" / "+b]={c:stats([s for s in F if s["area"]==a and s["boss"]==b and s["cls"]==c]) for c in CLS if cnt(F,a,c,b)>=3}
     def relidx(sub):
         r={}
         for c in CLS:

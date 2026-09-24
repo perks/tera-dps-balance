@@ -80,6 +80,12 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 .lg-whisk{width:22px;height:2px;background:var(--line2)}
 .lg-p90{width:2px;height:11px;background:var(--accent);opacity:.7}
 .lg-best{width:8px;height:8px;background:var(--accent);border-radius:50%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);
+ border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 18px}
+.kpi{background:var(--panel);padding:12px 14px}
+.kpi .k{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpi .v{font-size:23px;font-weight:700;color:var(--ink);line-height:1.25;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--ink2)}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable.on{color:var(--bar)}
 .patchbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
@@ -124,8 +130,31 @@ th.sortable.on{color:var(--bar)}
 <div class="tiles" id="tiles"></div>
 
 <section>
+<h2>How each class performs</h2>
+<p class="lead">The spread of every recorded parse, not just the middle. The box covers the middle half of parses, the line inside it is the median, the whisker runs from the weakest parse out to the 90th percentile, and the dot is the best pull on record. Pick a dungeon and boss to compare like with like.</p>
+<div class="panel">
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+<label for="distSel" class="hdr">Dungeon</label><select id="distSel"></select>
+<label for="distBoss" class="hdr">Boss</label><select id="distBoss"></select>
+<span class="n" id="distN"></span></div>
+<div class="kpis" id="distKpis"></div>
+<div class="bpwrap" id="boxplot"></div>
+<div class="bpaxis"><div></div><div class="ticks" id="bpticks"></div><div></div></div>
+<div class="legendrow">
+<span><i class="lg-whisk"></i>weakest to 90th percentile</span>
+<span><i class="lg-box"></i>middle half</span>
+<span><i class="lg-med"></i>median</span>
+<span><i class="lg-p90"></i>90th percentile</span>
+<span><i class="lg-best"></i>best recorded</span>
+</div>
+<div class="tscroll" id="distTable" style="margin-top:18px"></div>
+<p class="legend">Floor is the weakest parse on record and is usually a wipe-adjacent pull, not a typical one — read the median and the box first. Crit and deaths are averages over the same parses.</p>
+</div>
+</section>
+
+<section>
 <h2>Where each class stands</h2>
-<p class="lead">Every figure shows <b>how far above or below the typical DPS player</b> a class sits on the same boss, so a Savage kill and a Dragon's Landing kill are on one scale. <b>+10% means 10% more damage than the median player on that boss.</b> Three lenses: raw, kill-time-matched, and same-gear.</p>
+<p class="lead">Every figure shows <b>how far above or below the typical DPS player</b> a class sits on the same boss, so a Savage kill and a Dragon's Landing kill are on one scale. <b>+10% means 10% more damage than the median player on that boss.</b> Three lenses: every parse, kill-time matched, and the top 10% of players.</p>
 <div class="panel">
 <div class="tabs" role="tablist" id="lensTabs"></div>
 <div id="lensChart"></div>
@@ -162,27 +191,6 @@ th.sortable.on{color:var(--bar)}
 </section>
 
 <section>
-<h2>How each class performs</h2>
-<p class="lead">The spread of every recorded parse, not just the middle. The box covers the middle half, the line inside is the median, the whisker runs from the weakest parse to the 90th percentile, and the dot is the best pull on record.</p>
-<div class="panel">
-<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
-<label for="distSel" class="hdr">Dungeon</label><select id="distSel"></select>
-<label for="distBoss" class="hdr">Boss</label><select id="distBoss"></select>
-<span class="n" id="distN"></span></div>
-<div class="bpwrap" id="boxplot"></div>
-<div class="bpaxis"><div></div><div class="ticks" id="bpticks"></div><div></div></div>
-<div class="legendrow">
-<span><i class="lg-whisk"></i>weakest to 90th percentile</span>
-<span><i class="lg-box"></i>middle half</span>
-<span><i class="lg-med"></i>median</span>
-<span><i class="lg-p90"></i>90th percentile</span>
-<span><i class="lg-best"></i>best recorded</span>
-</div>
-</div>
-<details><summary>The same numbers as a sortable table</summary><div class="inner tscroll" id="distTable"></div></details>
-</section>
-
-<section>
 <h2>Reading guide</h2>
 <div class="panel">
 <ul class="tight">
@@ -201,12 +209,16 @@ const D=__DATA__;
 const CLS=['Archer','Berserker','Gunner','Ninja','Reaper','Slayer','Sorcerer','Valkyrie','Warrior'];
 const AREAS=["Dragon's Landing","TS Hard","TS Savage","SS Hard","SS Savage"];
 const fmt=n=>n==null?'–':Math.round(n).toLocaleString('en-US');
-const fk=n=>n==null?'–':(n/1000).toFixed(0)+'k';
+const fk=n=>n==null?'–':n>=1e6?(n/1e6).toFixed(2)+'M':(n/1000).toFixed(0)+'k';
 const f2=n=>n==null?'–':n.toFixed(2);
 const rel=v=>v==null?'':(v>=1?'+':'\u2212')+Math.round(Math.abs(v-1)*100)+'%';
 const pill=v=>v==null?'':`<span class="pill ${v>=1.05?'pos':v<=0.95?'neg':'mid'}" title="${f2(v)}\u00d7 the typical DPS player on the same boss">${rel(v)}</span>`;
 const dur=sec=>sec==null?'-':(sec<60?Math.round(sec)+'s':Math.floor(sec/60)+'m'+(Math.round(sec%60)?' '+Math.round(sec%60)+'s':''));
 const durLabel=l=>String(l).replace(/(\d+)\s*-\s*(\d+)s/g,(m,a,b)=>dur(+a)+'–'+dur(+b)).replace(/(?<![\d–])(\d+)s/g,(m,d)=>dur(+d));
+// KPI helpers: both follow whichever patch is selected
+function lastKill(){const t=A.dataset&&A.dataset.dateTo;
+  return t?new Date(t*1000).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'–'}
+function patchLabel(){const m=PM.find(x=>x.id===ACTIVE);return m?m.name+(m.current?' (current)':''):'all patches pooled'}
 function render(){
  const ds=A.dataset;
  for(const id of ['lensTabs','areaTabs','ktTabs']) document.getElementById(id).innerHTML='';
@@ -275,7 +287,7 @@ function render(){
   const a=distSel.value, b=distBoss.value;
   const src=(b&&A.byBoss[b])?A.byBoss[b]:A.byArea[a];
   const box=document.getElementById('boxplot');
-  if(!src||!Object.keys(src).length){box.innerHTML='';document.getElementById('distN').textContent='Not enough parses here.';document.getElementById('distTable').innerHTML='';document.getElementById('bpticks').innerHTML='';return}
+  if(!src||!Object.keys(src).length){box.innerHTML='';document.getElementById('distN').textContent='Not enough parses here.';document.getElementById('distTable').innerHTML='';document.getElementById('bpticks').innerHTML='';document.getElementById('distKpis').innerHTML='';return}
   const rows=Object.entries(src).sort((x,y)=>y[1].med-x[1].med);
   const hi=Math.max(...rows.map(r=>r[1].max));
   const pc=v=>100*v/hi;
@@ -289,15 +301,24 @@ function render(){
     '<div class="p90" style="left:'+pc(r.p90)+'%"></div>'+
     '<div class="best" style="left:'+pc(r.max)+'%"></div></div>'+
     '<div class="bpval">'+fk(r.med)+'</div>').join('');
+  const bestRow=rows.slice().sort((x,y)=>y[1].max-x[1].max)[0];
+  const medRow=rows[0];
+  const logs=rows.reduce((s,r)=>s+r[1].n,0), uniq=rows.reduce((s,r)=>s+r[1].players,0);
+  const kpi=(k,v,sub)=>'<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="s">'+sub+'</div></div>';
+  document.getElementById('distKpis').innerHTML=
+    kpi('best recorded',fk(bestRow[1].max),bestRow[0])+
+    kpi('highest median',fk(medRow[1].med),medRow[0])+
+    kpi('parses analysed',logs.toLocaleString(),rows.length+' classes')+
+    kpi('latest kill',lastKill(),patchLabel());
   let t='';for(let i=0;i<=5;i++) t+='<span>'+fk(hi*i/5)+'</span>';
   document.getElementById('bpticks').innerHTML=t;
-  const cols=[['cls','class'],['n','parses'],['min','floor'],['p25','Q1'],['med','median'],['p75','Q3'],['p90','P90'],['max','best'],['avg','average']];
+  const cols=[['cls','class'],['n','parses'],['min','floor'],['p25','Q1'],['med','median'],['p75','Q3'],['p90','P90'],['max','best'],['avg','average'],['crit','crit'],['deaths','deaths']];
   let sortKey='med',desc=true;
   function paint(){
    const sorted=rows.slice().sort((x,y)=>{const va=sortKey==='cls'?x[0]:x[1][sortKey],vb=sortKey==='cls'?y[0]:y[1][sortKey];return (va<vb?-1:va>vb?1:0)*(desc?-1:1)});
    document.getElementById('distTable').innerHTML='<table><thead><tr>'+
     cols.map(([k,l])=>'<th class="sortable'+(k===sortKey?' on':'')+'" data-k="'+k+'">'+l+(k===sortKey?(desc?' \u2193':' \u2191'):'')+'</th>').join('')+
-    '</tr></thead><tbody>'+sorted.map(([c,r])=>'<tr><td><b>'+c+'</b></td><td class="n">'+r.n+'</td><td class="n">'+fk(r.min)+'</td><td>'+fk(r.p25)+'</td><td><b>'+fk(r.med)+'</b></td><td>'+fk(r.p75)+'</td><td>'+fk(r.p90)+'</td><td>'+fk(r.max)+'</td><td class="n">'+fk(r.avg)+'</td></tr>').join('')+'</tbody></table>';
+    '</tr></thead><tbody>'+sorted.map(([c,r])=>'<tr><td><b>'+c+'</b></td><td class="n">'+r.n+'</td><td class="n">'+fk(r.min)+'</td><td>'+fk(r.p25)+'</td><td><b>'+fk(r.med)+'</b></td><td>'+fk(r.p75)+'</td><td>'+fk(r.p90)+'</td><td>'+fk(r.max)+'</td><td class="n">'+fk(r.avg)+'</td><td class="n">'+(r.crit==null?'–':r.crit.toFixed(0)+'%')+'</td><td class="n">'+(r.deaths==null?'–':r.deaths.toFixed(1))+'</td></tr>').join('')+'</tbody></table>';
    document.querySelectorAll('#distTable th.sortable').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k===sortKey)desc=!desc;else{sortKey=k;desc=true;}paint();});
   }
   paint();
