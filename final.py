@@ -10,7 +10,7 @@ S=[]; drop=collections.Counter()
 # /recent supplies area + timestamp for encounters the rankings board never
 # surfaced (it only keeps each player's best parse per boss)
 ridx=json.load(open("recent_index.json")) if os.path.exists("recent_index.json") else {}
-offboard=0
+offboard=0; notank=0
 for f in os.listdir("enc"):
     d=json.load(open("enc/"+f))
     m=meta.get(d["uid"])
@@ -19,6 +19,13 @@ for f in os.listdir("enc"):
         r=ridx.get(d["uid"]) or {}
         m={"areaId":r.get("area",d.get("area")),"encounterUnixEpoch":r.get("ts")}
     psize=len(d["players"])
+    # A party with nobody labelled tank is not a standard run: somebody is
+    # tanking on a dps-labelled character, and their damage is far below what
+    # that class does in a normal group. Warriors take the brunt of this.
+    if not any(p["role"]=="tank" for p in d["players"]):
+        drop["no tank in party"]+=len([p for p in d["players"] if p["cls"] in CLS and p["role"]=="dps"])
+        notank+=1
+        continue
     seen=set()
     for p in d["players"]:
         if p["cls"] not in CLS: continue
@@ -33,7 +40,8 @@ for f in os.listdir("enc"):
             ilvl=p["ilvl"],wEnch=p["wEnchant"],brooch=p["brooch"],hasGear=p["hasGear"],
             enr=sum(1 for r in wr if "enraged" in r),flat=sum(1 for r in wr if r.startswith("Increases damage by 6.0%")),
             behind=sum(1 for r in wr if "from behind" in r),armor=tuple(p["armorEnchant"].values())))
-print("samples",len(S),"drop",dict(drop),"| encounters not on the rankings board (kept):",offboard)
+print("samples",len(S),"drop",dict(drop),"| encounters not on the rankings board (kept):",offboard,
+      "| kills with no tank (dropped):",notank)
 # ---------- patch windows ----------
 # Only patches that touch DPS class balance or the difficulty of the five
 # endgame dungeons matter here; purely cosmetic, questing or healer-only patches

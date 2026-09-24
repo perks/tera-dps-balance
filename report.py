@@ -118,7 +118,7 @@ th.sortable.on{color:var(--bar)}
 <div class="nav"><a href="../">Home</a><a href="../tera-dps-balance/" aria-current="page">DPS classes</a><a href="../slayer-build/">Slayer build data</a><a href="../slayer-guide/">Slayer guide</a></div>
 <div class="eyebrow">TERA Europe Classic+ · public leaderboard API · __D0__ – __D1__</div>
 <h1>Classic+ DPS Balance</h1>
-<p class="sub">Pick a patch below — class balance changed between them, so pooling every patch together blurs the picture. Everything on this page then reflects that patch only. Data covers every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded.</p>
+<p class="sub">Pick a patch below — class balance changed between them, so pooling every patch together blurs the picture. Everything on this page then reflects that patch only. Data covers every DPS-role player in every recorded 5-man kill of Timescape (Hard/Savage), Shadow Sanguinary (Hard/Savage) and Dragon's Landing. Warriors count only where the game flagged them as DPS rather than tank; healers, tanks and entries under 50k DPS are excluded, as are the 1.6% of kills that ran without any tank at all, where somebody is tanking on a DPS character.</p>
 <div class="patchbar" id="patchbar" role="tablist"></div>
 <div class="patchinfo" id="patchinfo"></div>
 <div class="tiles" id="tiles"></div>
