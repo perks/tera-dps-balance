@@ -2,14 +2,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 :root{color-scheme:light;
- --bg:#f5f3ee;--panel:#ffffff;--ink:#1b1a17;--ink2:#5b584f;--muted:#8a867a;--line:#e2ded4;--line2:#cfcabc;
- --bar:#2a6fb8;--bar-soft:#c9dcf1;--pos:#1a8a5a;--neg:#c9452b;--pos-bg:#d8f0e4;--neg-bg:#f8d9d1;--mid-bg:#ecebe5;--accent:#b8541f;--heat0:#f4f2ec;--heat1:#2a6fb8}
+ --bg:#e8e5df;--panel:#f3f1ed;--ink:#282c31;--ink2:#5d646d;--muted:#8d939b;--line:#dcd7cf;--line2:#c6c0b6;
+ --bar:#4a7fb0;--bar-soft:#cdddea;--pos:#4a8a68;--neg:#b5604f;--pos-bg:#dae8e0;--neg-bg:#f0ddd7;--mid-bg:#e3e1db;--accent:#a8713c;--heat0:#e3e0d9;--heat1:#4a7fb0}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;
- --bg:#17181a;--panel:#1f2124;--ink:#f1efe8;--ink2:#b8b4a8;--muted:#807c72;--line:#33363b;--line2:#464a51;
- --bar:#4f95e0;--bar-soft:#2a4363;--pos:#3fc48a;--neg:#f0745a;--pos-bg:#1e3a2d;--neg-bg:#452620;--mid-bg:#2a2c30;--accent:#e08a5a;--heat0:#25272b;--heat1:#4f95e0}}
+ --bg:#1d2126;--panel:#252a31;--ink:#e3e6e9;--ink2:#a6aeb8;--muted:#79818c;--line:#333942;--line2:#434b55;
+ --bar:#6098cc;--bar-soft:#2c4560;--pos:#5fb089;--neg:#d2836e;--pos-bg:#24382f;--neg-bg:#3d2a24;--mid-bg:#2d323a;--accent:#c9925c;--heat0:#2a2f36;--heat1:#6098cc}}
 :root[data-theme="dark"]{color-scheme:dark;
- --bg:#17181a;--panel:#1f2124;--ink:#f1efe8;--ink2:#b8b4a8;--muted:#807c72;--line:#33363b;--line2:#464a51;
- --bar:#4f95e0;--bar-soft:#2a4363;--pos:#3fc48a;--neg:#f0745a;--pos-bg:#1e3a2d;--neg-bg:#452620;--mid-bg:#2a2c30;--accent:#e08a5a;--heat0:#25272b;--heat1:#4f95e0}
+ --bg:#1d2126;--panel:#252a31;--ink:#e3e6e9;--ink2:#a6aeb8;--muted:#79818c;--line:#333942;--line2:#434b55;
+ --bar:#6098cc;--bar-soft:#2c4560;--pos:#5fb089;--neg:#d2836e;--pos-bg:#24382f;--neg-bg:#3d2a24;--mid-bg:#2d323a;--accent:#c9925c;--heat0:#2a2f36;--heat1:#6098cc}
 body{background:var(--bg);color:var(--ink);font-family:Barlow,system-ui,sans-serif;font-size:15px;line-height:1.45;margin:0}
 .wrap{max-width:1040px;margin:0 auto;padding-block:28px 64px;padding-inline:20px}
 h1{font-family:"Barlow Condensed",Barlow,sans-serif;font-weight:700;font-size:40px;line-height:1;margin:0 0 6px;letter-spacing:.01em;text-wrap:balance}
@@ -55,6 +55,28 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 .tabs button{font:inherit;font-size:13px;font-weight:600;padding:5px 10px;border:1px solid var(--line2);background:var(--panel);color:var(--ink2);border-radius:4px;cursor:pointer}
 .tabs button[aria-selected=true]{background:var(--bar);border-color:var(--bar);color:#fff}
 .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bpwrap{display:grid;grid-template-columns:96px 1fr 72px;gap:2px 12px;align-items:center;font-size:14px}
+.bpwrap .hd{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-bottom:2px}
+.bp{position:relative;height:26px}
+.bp .whisk{position:absolute;top:12px;height:2px;background:var(--line2);border-radius:1px}
+.bp .cap{position:absolute;top:7px;width:2px;height:12px;background:var(--line2);border-radius:1px}
+.bp .box{position:absolute;top:5px;height:16px;background:var(--bar-soft);border:1px solid var(--bar);border-radius:3px}
+.bp .med{position:absolute;top:3px;width:3px;height:20px;background:var(--bar);border-radius:2px}
+.bp .p90{position:absolute;top:8px;width:2px;height:10px;background:var(--accent);opacity:.7;border-radius:1px}
+.bp .best{position:absolute;top:9px;width:8px;height:8px;background:var(--accent);border-radius:50%;margin-left:-4px}
+.bpname{font-weight:600;white-space:nowrap}
+.bpval{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.bpaxis{display:grid;grid-template-columns:96px 1fr 72px;gap:12px;margin-top:4px;font-size:11px;color:var(--muted)}
+.bpaxis .ticks{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.legendrow{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-top:14px;align-items:center}
+.legendrow i{display:inline-block;vertical-align:middle;margin-right:5px}
+.lg-box{width:22px;height:11px;background:var(--bar-soft);border:1px solid var(--bar);border-radius:2px}
+.lg-med{width:3px;height:13px;background:var(--bar);border-radius:2px}
+.lg-whisk{width:22px;height:2px;background:var(--line2)}
+.lg-p90{width:2px;height:11px;background:var(--accent);opacity:.7}
+.lg-best{width:8px;height:8px;background:var(--accent);border-radius:50%}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable.on{color:var(--bar)}
 .patchbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
 .patchbtn{flex:1 1 150px;min-width:140px;text-align:left;background:var(--panel);border:1px solid var(--line2);border-radius:7px;padding:9px 12px;cursor:pointer;font:inherit;color:var(--ink2);transition:border-color .12s,background .12s}
 .patchbtn:hover{background:var(--heat0)}
@@ -135,16 +157,24 @@ ul.tight{margin:6px 0 0 18px;padding:0;max-width:78ch}ul.tight li{margin:4px 0}
 </section>
 
 <section>
-<h2>Gear-matched comparison</h2>
-<p class="lead">Recorded equipment snapshots cover <span id="gearCov"></span> of samples. The API exposes weapon/armor enchant, brooch, item level and item rolls; there are no etching or potential fields in this game version, so weapon enchant + brooch + item level is the gear score.</p>
-<div class="grid2">
- <div class="panel"><h3>How much gear moves the needle</h3><div class="tscroll" id="gearEffect"></div><p class="note">Median relative DPS (vs boss median) by weapon enchant tier, all classes pooled. The +6 → +7 step is the one to keep in mind when reading raw tables.</p></div>
- <div class="panel"><h3>Who is geared</h3><div class="tscroll" id="gearProfile"></div><p class="note">If a class sits high on the raw table but also has more +7/+8 weapons, the raw number overstates it.</p></div>
+<h2>How each class performs</h2>
+<p class="lead">The spread of every recorded parse, not just the middle. The box covers the middle half, the line inside is the median, the whisker runs from the weakest parse to the 90th percentile, and the dot is the best pull on record.</p>
+<div class="panel">
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+<label for="distSel" class="hdr">Dungeon</label><select id="distSel"></select>
+<label for="distBoss" class="hdr">Boss</label><select id="distBoss"></select>
+<span class="n" id="distN"></span></div>
+<div class="bpwrap" id="boxplot"></div>
+<div class="bpaxis"><div></div><div class="ticks" id="bpticks"></div><div></div></div>
+<div class="legendrow">
+<span><i class="lg-whisk"></i>weakest to 90th percentile</span>
+<span><i class="lg-box"></i>middle half</span>
+<span><i class="lg-med"></i>median</span>
+<span><i class="lg-p90"></i>90th percentile</span>
+<span><i class="lg-best"></i>best recorded</span>
 </div>
-<div class="panel" style="margin-top:16px"><h3>How much each class gains from gear</h3><div class="tscroll" id="classTier"></div><p class="note">Median index per weapon tier, with sample count. <b>% per ilvl</b> is a regression slope over every sample of that class (item level 395–420) — the most robust column, since +7/+8 buckets are thin. Higher = the class scales harder with gear, so it is more undergeared-punished and more BiS-rewarded. Blank = fewer than 3 samples.</p></div>
-<div class="panel" style="margin-top:16px"><h3>Same gear, same boss: <span id="stdDesc"></span></h3>
-<div class="tabs" role="tablist" id="stdTabs"></div>
-<div id="stdChart"></div><p class="note" id="stdNote"></p></div>
+</div>
+<details><summary>The same numbers as a sortable table</summary><div class="inner tscroll" id="distTable"></div></details>
 </section>
 
 <section>
@@ -191,7 +221,6 @@ function render(){
  const lenses=[
   {id:'raw',label:'All parses',rows:Object.entries(A.relIndex),key:'avg',nkey:'n / uniq',note:`Average across every parse. Counting each player once at their best parse instead: ${Object.entries(A.relIndex).sort((a,b)=>b[1].playerBestMed-a[1].playerBestMed).map(([c,r])=>c+' '+(r.playerBestMed>=1?'+':'−')+Math.round(Math.abs(r.playerBestMed-1)*100)+'%').join(' · ')}.`},
   {id:'kt',label:'Kill-time matched',rows:Object.entries(A.killTimeIndex).map(([c,r])=>[c,{avg:r.rel,n:r.n,players:A.relIndex[c].players}]),key:'avg',nkey:'n / uniq',note:'Class average ÷ median of the same duration quartile on the same boss, weighted by sample count across all 15 bosses.'},
-  {id:'gear',label:'Same gear',rows:Object.entries(A.gear.stdBucket.classes),key:'avg',nkey:'n / uniq',note:`Only players wearing ${A.gear.stdBucket.desc} (${A.gear.stdBucket.n} samples).`},
   {id:'top',label:'Top 10% of players',rows:Object.entries(A.relIndex).map(([c,r])=>[c,{avg:r.top10,n:r.n,players:r.players}]),key:'avg',nkey:'n / uniq',note:'Average index of the best 10% of samples per class — the ceiling, not the typical player.'}
  ];
  const tabs=document.getElementById('lensTabs');
@@ -234,23 +263,48 @@ function render(){
    return `<tr><td><b>${c}</b></td>${vals.map(v=>`<td title="${v?`${v.n} kills · avg ${fk(v.avg)} · best ${fk(v.max)}`:''}">${v?pill(v.rel)+` <span class="n">${v.n}</span>`:''}</td>`).join('')}<td>${pill(avg)}</td></tr>`}).join('')+`</tbody></table>`}
  sel.onchange=()=>kt(sel.value);kt(bossKeys[0]);
  // gear
- document.getElementById('gearCov').textContent=`${A.gear.coverage.withGear.toLocaleString()} of ${A.gear.coverage.of.toLocaleString()} (${Math.round(100*A.gear.coverage.withGear/A.gear.coverage.of)}%)`;
- document.getElementById('gearEffect').innerHTML=`<table><thead><tr><th>weapon</th><th>n</th><th>vs typical</th></tr></thead><tbody>`+Object.entries(A.gear.tierEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+
-  `</tbody></table><table style="margin-top:10px"><thead><tr><th>brooch (+6 weapon only)</th><th>n</th><th>vs typical</th></tr></thead><tbody>`+Object.entries(A.gear.broochEffect).map(([t,r])=>`<tr><td>${t}</td><td class="n">${r.n}</td><td>${pill(r.med)}</td></tr>`).join('')+`</tbody></table>`;
- document.getElementById('gearProfile').innerHTML=`<table><thead><tr><th>class</th><th>n</th><th>avg ilvl</th><th>avg wpn</th><th>+7 or better</th><th>chrono</th></tr></thead><tbody>`+Object.entries(A.gear.classGearProfile).sort((a,b)=>b[1].pct7plus-a[1].pct7plus).map(([c,r])=>`<tr><td><b>${c}</b></td><td class="n">${r.n}</td><td>${r.avgIlvl?r.avgIlvl.toFixed(1):'–'}</td><td>+${r.avgWEnch.toFixed(2)}</td><td>${Math.round(r.pct7plus*100)}%</td><td>${Math.round(r.pctChrono*100)}%</td></tr>`).join('')+`</tbody></table>`;
- const TIERS=Object.keys(A.gear.tierEffect);
- document.getElementById('classTier').innerHTML=`<table><thead><tr><th>class</th>${TIERS.map(t=>`<th>${t.replace(' weapon','')}</th>`).join('')}<th>+6 → +7</th><th>+6 → +8/9</th><th>% per ilvl</th></tr></thead><tbody>`+
-  Object.entries(A.gear.classByTier).sort((a,b)=>(b[1].ilvlSlope?b[1].ilvlSlope.perIlvl:0)-(a[1].ilvlSlope?a[1].ilvlSlope.perIlvl:0)).map(([c,r])=>{
-   const g=(a,b)=>r[a]&&r[b]?`<b>+${Math.round((r[b].med/r[a].med-1)*100)}%</b>`:'<span class="n">–</span>';
-   return `<tr><td><b>${c}</b></td>${TIERS.map(t=>r[t]?`<td>${pill(r[t].med)} <span class="n">${r[t].n}</span></td>`:'<td></td>').join('')}<td>${g('+6 weapon','+7 weapon')}</td><td>${g('+6 weapon','+8/+9 weapon')}</td><td><b>${r.ilvlSlope?(r.ilvlSlope.perIlvl*100).toFixed(1)+'%':'–'}</b> <span class="n">${r.ilvlSlope?r.ilvlSlope.n:''}</span></td></tr>`}).join('')+`</tbody></table>`;
- document.getElementById('stdDesc').textContent=A.gear.stdBucket.desc;
- const stdTabs=document.getElementById('stdTabs');
- const stdSets=[['All dungeons',A.gear.stdBucket.classes,A.gear.stdBucket.n],...AREAS.map(a=>[a,A.gear.stdBucket.byArea[a],Object.values(A.gear.stdBucket.byArea[a]).reduce((s,r)=>s+r.n,0)])];
- stdSets.forEach(([label,rows,n],i)=>{const b=document.createElement('button');b.role='tab';b.textContent=label;b.setAttribute('aria-selected',i===0);
-  b.onclick=()=>{[...stdTabs.children].forEach(x=>x.setAttribute('aria-selected',x===b));barChart(document.getElementById('stdChart'),Object.entries(rows).map(r=>[r[0],{...r[1]}]),'avg','n / uniq');
-  document.getElementById('stdNote').textContent=`${n} samples wearing ${A.gear.stdBucket.desc}${label==='All dungeons'?', all five dungeons pooled':' in '+label}. Index is vs the boss median of all players, so a well-geared group sits above 1.00 on average — read the ordering and the gaps, not the absolute level.`};
-  stdTabs.appendChild(b)});
- stdTabs.children[0].click();
+ // ---- distribution box plots ----
+ const distSel=document.getElementById('distSel'), distBoss=document.getElementById('distBoss');
+ function bossesFor(a){return Object.keys(A.byBoss).filter(k=>k.indexOf(a+" / ")===0)}
+ function drawDist(){
+  const a=distSel.value, b=distBoss.value;
+  const src=(b&&A.byBoss[b])?A.byBoss[b]:A.byArea[a];
+  const box=document.getElementById('boxplot');
+  if(!src||!Object.keys(src).length){box.innerHTML='';document.getElementById('distN').textContent='Not enough parses here.';document.getElementById('distTable').innerHTML='';document.getElementById('bpticks').innerHTML='';return}
+  const rows=Object.entries(src).sort((x,y)=>y[1].med-x[1].med);
+  const hi=Math.max(...rows.map(r=>r[1].max));
+  const pc=v=>100*v/hi;
+  document.getElementById('distN').textContent=rows.reduce((s,r)=>s+r[1].n,0).toLocaleString()+' parses across '+rows.length+' classes';
+  box.innerHTML='<div class="hd">class</div><div class="hd">DPS distribution</div><div class="hd" style="text-align:right">median</div>'+
+   rows.map(([c,r])=>'<div class="bpname">'+c+'</div><div class="bp" title="'+c+' \u2014 floor '+fk(r.min)+', Q1 '+fk(r.p25)+', median '+fk(r.med)+', Q3 '+fk(r.p75)+', P90 '+fk(r.p90)+', best '+fk(r.max)+' ('+r.n+' parses)">'+
+    '<div class="whisk" style="left:'+pc(r.min)+'%;width:'+Math.max(0.4,pc(r.p90)-pc(r.min))+'%"></div>'+
+    '<div class="cap" style="left:'+pc(r.min)+'%"></div>'+
+    '<div class="box" style="left:'+pc(r.p25)+'%;width:'+Math.max(0.8,pc(r.p75)-pc(r.p25))+'%"></div>'+
+    '<div class="med" style="left:'+pc(r.med)+'%"></div>'+
+    '<div class="p90" style="left:'+pc(r.p90)+'%"></div>'+
+    '<div class="best" style="left:'+pc(r.max)+'%"></div></div>'+
+    '<div class="bpval">'+fk(r.med)+'</div>').join('');
+  let t='';for(let i=0;i<=5;i++) t+='<span>'+fk(hi*i/5)+'</span>';
+  document.getElementById('bpticks').innerHTML=t;
+  const cols=[['cls','class'],['n','parses'],['min','floor'],['p25','Q1'],['med','median'],['p75','Q3'],['p90','P90'],['max','best'],['avg','average']];
+  let sortKey='med',desc=true;
+  function paint(){
+   const sorted=rows.slice().sort((x,y)=>{const va=sortKey==='cls'?x[0]:x[1][sortKey],vb=sortKey==='cls'?y[0]:y[1][sortKey];return (va<vb?-1:va>vb?1:0)*(desc?-1:1)});
+   document.getElementById('distTable').innerHTML='<table><thead><tr>'+
+    cols.map(([k,l])=>'<th class="sortable'+(k===sortKey?' on':'')+'" data-k="'+k+'">'+l+(k===sortKey?(desc?' \u2193':' \u2191'):'')+'</th>').join('')+
+    '</tr></thead><tbody>'+sorted.map(([c,r])=>'<tr><td><b>'+c+'</b></td><td class="n">'+r.n+'</td><td class="n">'+fk(r.min)+'</td><td>'+fk(r.p25)+'</td><td><b>'+fk(r.med)+'</b></td><td>'+fk(r.p75)+'</td><td>'+fk(r.p90)+'</td><td>'+fk(r.max)+'</td><td class="n">'+fk(r.avg)+'</td></tr>').join('')+'</tbody></table>';
+   document.querySelectorAll('#distTable th.sortable').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k===sortKey)desc=!desc;else{sortKey=k;desc=true;}paint();});
+  }
+  paint();
+ }
+ function syncBoss(){
+  const bs=bossesFor(distSel.value);
+  distBoss.innerHTML='<option value="">All bosses</option>'+bs.map(b=>'<option value="'+b+'">'+b.split(' / ')[1].replace('Nightmare ','N. ')+'</option>').join('');
+  drawDist();
+ }
+ distSel.innerHTML=AREAS.filter(a=>A.byArea[a]&&Object.keys(A.byArea[a]).length).map(a=>'<option>'+a+'</option>').join('');
+ distSel.onchange=syncBoss; distBoss.onchange=drawDist;
+ syncBoss();
 }
 
 // ---- measured movement against the previous patch ----

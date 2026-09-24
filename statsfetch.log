@@ -1,0 +1,9 @@
+11887 encounters contain Berserker, Ninja, Valkyrie, Warrior | 0 cached | fetching 1400
+  273/1400 ok=273 missing=0 failed=0 15s eta 1m
+  573/1400 ok=573 missing=0 failed=0 30s eta 1m
+  708/1400 ok=708 missing=0 failed=0 45s eta 1m
+  756/1400 ok=740 missing=16 failed=0 60s eta 1m
+  1127/1400 ok=1111 missing=16 failed=0 75s eta 0m
+  1397/1400 ok=1381 missing=16 failed=0 90s eta 0m
+  1399/1400 ok=1383 missing=16 failed=0 105s eta 0m
+done in 112s | ok 1383 | missing 17 | failed 0 | cache 1383

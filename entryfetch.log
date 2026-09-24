@@ -1,0 +1,20 @@
+Red Refuge       listed 911
+Lakan's Prison   listed 906
+1800 encounters | 0 cached | fetching 1800
+  339/1800 ok=339 missing=0 15s eta 1m
+  391/1800 ok=387 missing=4 30s eta 2m
+  425/1800 ok=405 missing=20 45s eta 2m
+  476/1800 ok=427 missing=49 60s eta 3m
+  609/1800 ok=559 missing=50 75s eta 2m
+  669/1800 ok=617 missing=52 90s eta 3m
+  701/1800 ok=637 missing=64 105s eta 3m
+  756/1800 ok=664 missing=92 120s eta 3m
+  790/1800 ok=682 missing=108 135s eta 3m
+  812/1800 ok=686 missing=126 150s eta 3m
+  839/1800 ok=699 missing=140 165s eta 3m
+  1039/1800 ok=893 missing=146 180s eta 2m
+  1301/1800 ok=1155 missing=146 195s eta 1m
+  1452/1800 ok=1306 missing=146 210s eta 1m
+  1485/1800 ok=1329 missing=156 225s eta 1m
+  1713/1800 ok=1546 missing=167 240s eta 0m
+done in 248s | ok 1633 | missing 167 | failed 0 | cache 1632
