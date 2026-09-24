@@ -303,9 +303,12 @@ function render(){
   document.getElementById('gmMeta').textContent=
     `${GM.n.toLocaleString()} parses across ${GM.cells} boss+gear cells · enchanting runs to +12, but the highest recorded here is +${GM.maxWeapon} weapon and +${GM.maxGloves} gloves`;
   document.getElementById('gmMin').textContent=GM.minPlayers;
-  const views=[{label:'All gear levels',cl:GM.overall,players:0,note:'Every parse, each one measured against its own boss and its own exact enchant pair, then pooled.'}]
-    .concat(GM.bands.map(b=>({label:b.label,cl:b.classes,players:b.players,note:b.note+` — ${b.n.toLocaleString()} parses from ${b.players} players.`})));
-  // open on the band the most players actually sit in, not whichever comes first
+  const skip=(GM.skipped||[]).map(k=>`${k.short} (${k.n.toLocaleString()} parses but only ${k.players} players)`).join(', ');
+  const views=[{label:'All levels',cl:GM.overall,players:0,
+      note:'Every parse, each measured against its own boss at its own exact enchant level, then pooled. Use the level tabs to see one level on its own.'}]
+    .concat(GM.exact.map(e=>({label:e.short,cl:e.classes,players:e.players,
+      note:`${e.label} — ${e.n.toLocaleString()} parses from ${e.players} players, ${Object.keys(e.classes).length} classes with enough data.`})));
+  // open on the level the most players actually sit at, not whichever comes first
   let DEF=0; views.forEach((v,i)=>{if(v.players>views[DEF].players) DEF=i});
   const gt=document.getElementById('gmTabs');
   function drawGM(v){
@@ -313,7 +316,8 @@ function render(){
    barChart(document.getElementById('gmChart'),rows,'avg','n / uniq');
    const thin=Object.entries(v.cl).filter(([,r])=>r.thin).map(([c])=>c);
    document.getElementById('gmNote').innerHTML=v.note+
-     (thin.length?` <b>Thin:</b> ${thin.join(', ')} rest on fewer than ${GM.minPlayers} players here, so treat them as those players rather than the class.`:'');
+     (thin.length?` <b>Thin:</b> ${thin.join(', ')} rest on fewer than ${GM.minPlayers} players here, so treat them as those players rather than the class.`:'')+
+     (skip?` <b>Not shown:</b> ${skip} — too few people at that level to say anything about a class.`:'');
   }
   gt.innerHTML='';
   views.forEach((v,i)=>{const b=document.createElement('button');b.role='tab';b.textContent=v.label;

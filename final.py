@@ -145,31 +145,27 @@ def build(S):
                        med=st.median([r for r,_ in v]),thin=len(pl)<MINPLAYERS)
         return cl
 
-    BANDS=[("+3 and below","gear still coming together",lambda w,g:max(w,g)<=3),
-           ("+4 to +6","where almost everyone sits",lambda w,g:4<=max(w,g)<=6),
-           ("+7 and above","the top of the ladder, few players",lambda w,g:max(w,g)>=7)]
-    bands=[]
-    for label,note,test in BANDS:
-        rows=[r for r in norm if test(r[3],r[4])]
-        cl=summarise(rows)
-        if len(cl)<6: continue
-        bands.append(dict(label=label,note=note,n=len(rows),players=len({r[1] for r in rows}),
-                          thin=any(v["thin"] for v in cl.values()),classes=cl))
-
-    # Exact matched levels, which is the comparison in its strictest form.
-    exact=[]
+    # One bucket per enchant level, never grouped: levels are not interchangeable
+    # and pooling them hides exactly the thing this section exists to show.
+    # A class figure needs at least MINPL distinct players behind it, or it is a
+    # portrait of one person. That is what rules a level out, not parse count:
+    # +9 has 566 parses but ten players in total, several classes being a single
+    # person, so it cannot carry a class comparison at any sample size.
+    exact=[]; skipped=[]
     for lv in sorted({w for _,_,_,w,g in norm if w==g}):
         rows=[r for r in norm if r[3]==lv and r[4]==lv]
-        cl=summarise(rows,minn=25,minpl=3)
-        if len(rows)<150 or len(cl)<5: continue
-        exact.append(dict(level=lv,label="+%d weapon and gloves"%lv,short="+%d"%lv,
-                          n=len(rows),players=len({r[1] for r in rows}),
-                          thin=any(v["thin"] for v in cl.values()),classes=cl))
+        if len(rows)<60: continue
+        cl=summarise(rows,minn=8,minpl=3)
+        rec=dict(level=lv,label="+%d weapon and gloves"%lv,short="+%d"%lv,
+                 n=len(rows),players=len({r[1] for r in rows}),
+                 thin=any(v["thin"] for v in cl.values()),classes=cl)
+        (exact if len(cl)>=4 else skipped).append(rec if len(cl)>=4 else
+            dict(short=rec["short"],n=rec["n"],players=rec["players"],classes=len(cl)))
 
     out["gearMatch"]=dict(minCell=MINCELL,minClasses=MINCLS,minPlayers=MINPLAYERS,
         n=len(norm),cells=sum(1 for xs in cells.values() if len(xs)>=MINCELL and len({x["cls"] for x in xs})>=MINCLS),
         maxWeapon=max((w for _,_,_,w,_ in norm),default=None),maxGloves=max((g for _,_,_,_,g in norm),default=None),
-        overall=summarise(norm),bands=bands,exact=exact)
+        overall=summarise(norm),exact=exact,skipped=skipped)
 
     # ---------- kill-time tiers ----------
     # Kills on each boss are ranked fastest-first and cut into speed tiers: the top
