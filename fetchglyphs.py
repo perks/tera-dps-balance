@@ -17,8 +17,11 @@ from concurrent.futures import ThreadPoolExecutor
 B="https://tera-europe-classic.com/api/leaderboard"
 PER=int(sys.argv[1]) if len(sys.argv)>1 else 400
 AREAS=[556,456,568,468,507]
-KEEP=("id","name","description","skillName","points","class","level","grade",
-      "parentId","skillOrder","glyphOrder","icon","skillIcon","skillDescription")
+KEEP=("id","name","points","class","level","grade","parentId",
+      "skillOrder","glyphOrder","icon","skillIcon")
+# The catalogue has always called these "skill" and "desc"; keep that schema so
+# entries written by different runs stay comparable.
+RENAME={"skillName":"skill","description":"desc"}
 CAT="glyph_catalogue.json"
 
 def get(url,tries=3):
@@ -61,6 +64,8 @@ def one(uid):
                 gid=g.get("id")
                 if gid is None or gid in cat: continue
                 e={k:g.get(k) for k in KEEP if g.get(k) is not None}
+                for src,dst in RENAME.items():
+                    if g.get(src) is not None: e[dst]=g[src]
                 e["class"]=p.get("class") or g.get("class")
                 cat[gid]=e
 
