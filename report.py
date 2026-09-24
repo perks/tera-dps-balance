@@ -550,7 +550,8 @@ function setPatch(id){
   }
   render();
 }
-pbar.innerHTML=PM.map(m=>{
+const PMD=PM.slice().reverse();   // display order: current first, then back in time
+pbar.innerHTML=PMD.map(m=>{
   const chips=m.classes.map(c=>`<span class="chip ${c.dir}" title="${c.text.replace(/"/g,'&quot;')}">${c.cls}${c.dir==='pvp'?' (PvP)':''}</span>`).join('')||'<span class="chip">no class changes</span>';
   return `<button class="patchbtn" role="tab" data-id="${m.id}" aria-selected="false">
     <span class="pv">${m.name}${m.current?' <em>current</em>':''}</span>
@@ -567,7 +568,7 @@ pbar.innerHTML=PM.map(m=>{
   box.onchange=()=>{SLAY=box.checked;sync();setPatch(ACTIVE)};
   sync(); }
 [...pbar.children].forEach(b=>b.onclick=()=>setPatch(b.dataset.id));
-setPatch((PM.find(m=>m.current)||PM[PM.length-1]||{id:'all'}).id);
+setPatch((PM.find(m=>m.current)||PMD[0]||{id:'all'}).id);
 </script>
 """
 html=html.replace("__DATA__",DATA).replace("__D0__",d0).replace("__D1__",d1)
